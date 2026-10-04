@@ -390,8 +390,8 @@
                                     <label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Tanggal</label>
                                     <input type="date" id="abs-tanggal" class="modern-input w-full" onchange="window.renderTableAbsensi()">
                                 </div>
-                                <div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Pilih Kelas</label><select id="abs-kelas" class="modern-input w-full" onchange="window.renderTableAbsensi()"></select></div>
-                                <div class="flex flex-col sm:flex-row gap-3 min-w-0 w-full md:col-span-2 justify-end">
+                                <div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Sebagai (Peran)</label><select id="abs-peran" class="modern-input w-full" onchange="window.onPeranChange('abs','')"></select></div><div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Kelas</label><select id="abs-kelas" class="modern-input w-full" onchange="window.renderTableAbsensi()"></select></div><div id="wrap-abs-mapel" class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Mata Pelajaran</label><select id="abs-mapel" class="modern-input w-full" onchange="window.renderTableAbsensi()"></select></div>
+                                <div class="flex flex-col sm:flex-row gap-3 min-w-0 w-full md:col-span-4 justify-end">
                                     <button onclick="window.setSemuaLibur()" class="btn-outline border-red-200 text-red-600 hover:bg-red-50 w-full sm:w-auto whitespace-nowrap"><i class="fas fa-calendar-times mr-2"></i> Set Libur</button>
                                     <button onclick="window.simpanAbsensi()" id="btn-simpan-absensi" class="modern-btn bg-[#0f172a] w-full sm:w-auto whitespace-nowrap shadow-md"><i class="fas fa-save mr-2"></i> Simpan Kehadiran</button>
                                 </div>
@@ -405,14 +405,14 @@
 
                         <!-- Panel Absen Bulanan -->
                         <div id="absensi-bulanan-view" class="space-y-4 hidden w-full max-w-full">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 items-end bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200 w-full max-w-full">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200 w-full max-w-full">
                                 <div class="flex flex-col min-w-0 w-full">
                                     <label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Bulan</label>
                                     <input type="month" id="abs-bulan" class="modern-input w-full" onchange="window.renderBulanAbsensi()">
                                 </div>
                                 <div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Semester</label><select id="abs-semester" class="modern-input w-full" onchange="window.renderBulanAbsensi()"><option value="GANJIL">Ganjil</option><option value="GENAP">Genap</option></select></div>
-                                <div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Kelas</label><select id="abs-kelas-bulan" class="modern-input w-full" onchange="window.renderBulanAbsensi()"></select></div>
-                                <div class="flex flex-col sm:flex-row gap-2 min-w-0 w-full lg:col-span-4 xl:col-span-2">
+                                <div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Sebagai (Peran)</label><select id="abs-peran-bulan" class="modern-input w-full" onchange="window.onPeranChange('abs','-bulan')"></select></div><div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Kelas</label><select id="abs-kelas-bulan" class="modern-input w-full" onchange="window.renderBulanAbsensi()"></select></div><div id="wrap-abs-mapel-bulan" class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Mata Pelajaran</label><select id="abs-mapel-bulan" class="modern-input w-full" onchange="window.renderBulanAbsensi()"></select></div>
+                                <div class="flex flex-col sm:flex-row gap-2 min-w-0 w-full lg:col-span-3 xl:col-span-6">
                                     <button onclick="window.exportToWord('absensi', 'tabel-export-absensi-bulan')" class="btn-outline border-blue-200 text-blue-700 w-full font-black shadow-sm" title="Unduh Word"><i class="fas fa-file-word mr-1"></i> Word</button>
                                     <button onclick="window.exportToExcel('absensi', 'tabel-export-absensi-bulan')" class="modern-btn bg-green-600 w-full font-black shadow-sm" title="Unduh Excel"><i class="fas fa-file-excel mr-1"></i> Excel</button>
                                 </div>
@@ -433,13 +433,13 @@
                         
                         <!-- Panel Nilai Harian -->
                         <div id="nilai-harian-view" class="space-y-4 w-full max-w-full">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200 w-full max-w-full">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200 w-full max-w-full">
                                 <div class="flex flex-col min-w-0 w-full">
                                     <label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Tanggal</label>
                                     <input type="date" id="nil-tanggal" class="modern-input w-full" onchange="window.renderTableNilai()">
                                 </div>
-                                <div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Mapel</label><select id="nil-mapel" class="modern-input w-full" onchange="window.renderTableNilai()"></select></div>
-                                <div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Kelas</label><select id="nil-kelas" class="modern-input w-full" onchange="window.renderTableNilai()"></select></div>
+                                
+                                <div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Sebagai (Peran)</label><select id="nil-peran" class="modern-input w-full" onchange="window.onPeranChange('nil','')"></select></div><div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Kelas</label><select id="nil-kelas" class="modern-input w-full" onchange="window.renderTableNilai()"></select></div><div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Mata Pelajaran</label><select id="nil-mapel" class="modern-input w-full" onchange="window.renderTableNilai()"></select></div>
                                 <div class="flex justify-end min-w-0 w-full">
                                     <button onclick="window.simpanNilai()" id="btn-simpan-nilai" class="modern-btn bg-[#0f172a] w-full whitespace-nowrap shadow-md"><i class="fas fa-save mr-2"></i> Simpan Nilai</button>
                                 </div>
@@ -451,15 +451,15 @@
 
                         <!-- Panel Nilai Bulanan -->
                         <div id="nilai-bulanan-view" class="space-y-4 hidden w-full max-w-full">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200 w-full max-w-full">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200 w-full max-w-full">
                                 <div class="flex flex-col min-w-0 w-full">
                                     <label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Bulan</label>
                                     <input type="month" id="nil-bulan" class="modern-input w-full" onchange="window.renderBulanNilai()">
                                 </div>
                                 <div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Semester</label><select id="nil-semester" class="modern-input w-full" onchange="window.renderBulanNilai()"><option value="GANJIL">Ganjil</option><option value="GENAP">Genap</option></select></div>
-                                <div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Mapel</label><select id="nil-mapel-bulan" class="modern-input w-full" onchange="window.renderBulanNilai()"></select></div>
-                                <div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Kelas</label><select id="nil-kelas-bulan" class="modern-input w-full" onchange="window.renderBulanNilai()"></select></div>
-                                <div class="flex flex-col sm:flex-row gap-2 min-w-0 w-full lg:col-span-5 xl:col-span-1">
+                                
+                                <div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Sebagai (Peran)</label><select id="nil-peran-bulan" class="modern-input w-full" onchange="window.onPeranChange('nil','-bulan')"></select></div><div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Kelas</label><select id="nil-kelas-bulan" class="modern-input w-full" onchange="window.renderBulanNilai()"></select></div><div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Mata Pelajaran</label><select id="nil-mapel-bulan" class="modern-input w-full" onchange="window.renderBulanNilai()"></select></div>
+                                <div class="flex flex-col sm:flex-row gap-2 min-w-0 w-full lg:col-span-3 xl:col-span-6">
                                     <button onclick="window.exportToWord('nilai', 'tabel-export-nilai-bulan')" class="btn-outline border-blue-200 text-blue-700 w-full font-black shadow-sm" title="Unduh Word"><i class="fas fa-file-word mr-1"></i> Word</button>
                                     <button onclick="window.exportToExcel('nilai', 'tabel-export-nilai-bulan')" class="modern-btn bg-green-600 w-full font-black shadow-sm" title="Unduh Excel"><i class="fas fa-file-excel mr-1"></i> Excel</button>
                                 </div>
@@ -520,6 +520,12 @@
                             <div id="atur-pilihan" class="mb-4"></div>
                             <button onclick="window.simpanAturPenugasan()" id="btn-simpan-atur" class="modern-btn bg-blue-600 whitespace-nowrap w-full sm:w-auto"><i class="fas fa-check mr-2"></i> Simpan Penugasan</button>
                         </div>
+                        <div id="panel-mapel-sekolah" class="hidden modern-card border-t-4 border-t-green-600 mt-8 shadow-md w-full max-w-full">
+                            <h3 class="font-black mb-2 text-sm uppercase tracking-widest text-gray-900"><i class="fas fa-book text-green-600 mr-2"></i> Mata Pelajaran Sekolah</h3>
+                            <p class="text-[10px] text-gray-500 mb-5 font-bold">Tambah mata pelajaran untuk sekolah ini. Mapel yang tampil di daftar ini bisa dicentang saat menunjuk wali kelas atau guru mapel, dan hanya mapel yang dicentang yang muncul di absensi dan nilai guru.</p>
+                            <div class="flex flex-col sm:flex-row gap-3 mb-4"><input type="text" id="in-mapel-sekolah" class="modern-input flex-1 min-w-0 w-full" placeholder="Nama mapel (Cth: Matematika)"><button onclick="window.tambahMapelSekolah()" id="btn-tambah-mapel-sekolah" class="modern-btn bg-green-600 whitespace-nowrap w-full sm:w-auto"><i class="fas fa-plus mr-2"></i> Tambah Mapel</button></div>
+                            <ul id="list-mapel-sekolah" class="space-y-2 max-h-64 overflow-y-auto custom-scrollbar"></ul>
+                        </div>
                         <div id="panel-delegasi-kepsek" class="hidden modern-card border-t-4 border-t-purple-500 mt-8 shadow-md w-full max-w-full">
                             <h3 class="font-black mb-2 text-sm uppercase tracking-widest text-gray-900"><i class="fas fa-user-shield text-purple-500 mr-2"></i> Delegasi Admin Sekolah</h3>
                             <p class="text-[10px] text-gray-500 mb-5 font-bold">Pilih guru untuk diberi akses sebagai Admin / Operator yang membantu mengelola sekolah ini.</p>
@@ -562,6 +568,7 @@
                                 <div class="flex flex-col gap-4 mb-5 shrink-0">
                                     <input type="hidden" id="in-sekolah-uid">
                                     <div class="flex flex-col sm:flex-row gap-3"><input type="text" id="in-nama-sekolah" placeholder="Nama Sekolah (Cth: SD Cendekia)" class="modern-input flex-1 min-w-0 w-full"><button onclick="window.simpanMasterSekolah()" id="btn-simpan-sekolah" class="modern-btn whitespace-nowrap sm:w-32 w-full">Tambah</button></div>
+                                    <select id="in-jenjang-sekolah" class="modern-input w-full"><option value="">-- Pilih Jenjang --</option><option value="TK_RA">TK/RA</option><option value="SD_MI">SD/MI</option><option value="SMP_MTS">SMP/MTs</option><option value="SMA_MA">SMA/MA</option></select>
                                     <input type="text" id="in-logo-sekolah" placeholder="URL Logo Kop Surat (.png / .jpg)" class="modern-input text-xs min-w-0 w-full">
                                     <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl max-h-40 overflow-y-auto custom-scrollbar"><p class="text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-3">Centang Mapel Berlaku di Sekolah Ini</p><div id="check-mapel-sekolah" class="space-y-2 flex flex-col"></div></div>
                                 </div>
@@ -945,7 +952,7 @@
                         DB.classes.filter(c => c.sekolah_id === p.sekolah_id).forEach(c=>cl.add(c.id)); DB.subjects.forEach(m=>ma.add(m.id));
                     } else if(p.role === 'wali_kelas') {
                         if(p.kelas_ids) p.kelas_ids.forEach(k=>cl.add(k));
-                        const sData = DB.schools.find(x => x.id === p.sekolah_id); if(sData && sData.mapel_ids) sData.mapel_ids.forEach(m=>ma.add(m)); 
+                        if(p.mapel_ids && p.mapel_ids.length) p.mapel_ids.forEach(m=>ma.add(m)); else { const sData = DB.schools.find(x => x.id === p.sekolah_id); if(sData && sData.mapel_ids) sData.mapel_ids.forEach(m=>ma.add(m)); } 
                     } else {
                         if(p.kelas_ids) p.kelas_ids.forEach(k=>cl.add(k)); if(p.mapel_ids) p.mapel_ids.forEach(m=>ma.add(m));
                     }
@@ -1361,6 +1368,103 @@
             } catch(e) { showToast(e.message, true); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
         };
 
+        // --- JENJANG, PERAN & MAPEL ---
+        const JENJANG_LIST = [{v:'TK_RA',l:'TK/RA'},{v:'SD_MI',l:'SD/MI'},{v:'SMP_MTS',l:'SMP/MTs'},{v:'SMA_MA',l:'SMA/MA'}];
+        const jenjangLabel = (v) => (JENJANG_LIST.find(j => j.v === v) || {}).l || 'Jenjang belum diatur';
+        const getJenjang = (sid) => { const sc = DB.schools.find(x => x.id === sid); return (sc && sc.jenjang) || 'SD_MI'; };
+        const isJenjangAwal = (sid) => ['TK_RA','SD_MI'].includes(getJenjang(sid));
+        const ROMAWI = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+        const kelasRomawi = (nama) => {
+            const t = String(nama || '').trim();
+            let m = t.match(/(\d{1,2})\s*([A-Za-z]?)\s*$/);
+            if (m && ROMAWI[+m[1]]) return ROMAWI[+m[1]] + (m[2] ? ' ' + m[2].toUpperCase() : '');
+            m = t.match(/\b(XII|XI|X|IX|VIII|VII|VI|V|IV|III|II|I)\b/i);
+            if (m) return m[1].toUpperCase();
+            return t.replace(/^kelas\s+/i, '');
+        };
+        const PERAN_LABEL = { wali_kelas: 'Wali Kelas', guru_mapel: 'Guru Mapel' };
+        const ctxSid = () => { const p = currentUser.data.penugasan[currentUser.activeAssignmentIndex]; return p ? p.sekolah_id : null; };
+        const isAdminLike = () => ['kepala_sekolah', 'admin_sekolah'].includes(getCurrentRole());
+
+        // Mapel milik sebuah sekolah (yang dicentang Admin Master / ditambah Admin Sekolah)
+        const schoolSubjects = (sid) => {
+            const sc = DB.schools.find(x => x.id === sid); const ids = (sc && sc.mapel_ids) || [];
+            return ids.length ? DB.subjects.filter(m => ids.includes(m.id)) : DB.subjects.filter(m => !m.sekolah_id || m.sekolah_id === sid);
+        };
+
+        const getPeranOptions = (tipe) => {
+            const sid = ctxSid(); let roles;
+            if (isAdminLike()) roles = ['wali_kelas', 'guru_mapel'];
+            else roles = (currentUser.data.penugasan || []).filter(p => p.sekolah_id === sid && (p.role === 'wali_kelas' || p.role === 'guru_mapel')).map(p => p.role);
+            if (tipe === 'abs' && isJenjangAwal(sid)) roles = roles.filter(r => r === 'wali_kelas');
+            return Array.from(new Set(roles));
+        };
+        const getKelasOptions = (role) => {
+            const sid = ctxSid(); const all = DB.classes.filter(c => c.sekolah_id === sid);
+            if (isAdminLike()) return all;
+            const p = (currentUser.data.penugasan || []).find(x => x.sekolah_id === sid && x.role === role);
+            const ids = (p && p.kelas_ids) || []; return all.filter(c => ids.includes(c.id));
+        };
+        const getMapelOptions = (role) => {
+            const sid = ctxSid(); const base = schoolSubjects(sid);
+            if (isAdminLike()) return base;
+            const p = (currentUser.data.penugasan || []).find(x => x.sekolah_id === sid && x.role === role);
+            const ids = (p && p.mapel_ids) || [];
+            return ids.length ? base.filter(m => ids.includes(m.id)) : (role === 'wali_kelas' ? base : []);
+        };
+
+        const fillPeran = (t, sfx) => {
+            const sel = document.getElementById(`${t}-peran${sfx}`); const prev = sel.value; const roles = getPeranOptions(t);
+            sel.innerHTML = roles.length ? roles.map(r => `<option value="${r}">${PERAN_LABEL[r]}</option>`).join('') : '<option value="">-- Tidak ada peran --</option>';
+            if (roles.includes(prev)) sel.value = prev;
+        };
+        const fillKelas = (t, sfx) => {
+            const sel = document.getElementById(`${t}-kelas${sfx}`); const prev = sel.value; const kls = getKelasOptions(document.getElementById(`${t}-peran${sfx}`).value);
+            sel.innerHTML = '<option value="">-- Pilih Kelas --</option>' + kls.map(c => `<option value="${c.id}">${c.nama}</option>`).join('');
+            if (kls.some(c => c.id === prev)) sel.value = prev; else if (kls.length === 1) sel.value = kls[0].id;
+        };
+        const fillMapel = (t, sfx) => {
+            const sel = document.getElementById(`${t}-mapel${sfx}`); const prev = sel.value; const mpl = getMapelOptions(document.getElementById(`${t}-peran${sfx}`).value);
+            sel.innerHTML = '<option value="">-- Pilih Mapel --</option>' + mpl.map(m => `<option value="${m.id}">${m.nama}</option>`).join('');
+            if (mpl.some(m => m.id === prev)) sel.value = prev; else if (mpl.length === 1) sel.value = mpl[0].id;
+            if (t === 'abs') { const w = document.getElementById(`wrap-abs-mapel${sfx}`); if (w) w.classList.toggle('hidden', isJenjangAwal(ctxSid())); }
+        };
+        const refreshFilter = (t, sfx) => { fillPeran(t, sfx); fillKelas(t, sfx); fillMapel(t, sfx); };
+        window.onPeranChange = (t, sfx) => {
+            fillKelas(t, sfx); fillMapel(t, sfx);
+            if (t === 'abs') { if (sfx) window.renderBulanAbsensi(); else window.renderTableAbsensi(); }
+            else { if (sfx) window.renderBulanNilai(); else window.renderTableNilai(); }
+        };
+
+        // --- MAPEL SEKOLAH (Admin Sekolah) ---
+        window.renderMapelSekolah = () => {
+            const list = document.getElementById('list-mapel-sekolah'); if (!list) return;
+            const { sId } = aturCtx(); const mp = schoolSubjects(sId);
+            list.innerHTML = mp.map(m => `<li class="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-200 shadow-sm w-full"><span class="font-bold text-[11px] uppercase tracking-widest text-gray-900 truncate pr-4 flex-1 min-w-0">${m.nama}</span><div onclick="window.hapusMapelSekolah('${m.id}')" aria-label="Keluarkan dari sekolah" class="action-icon shrink-0"><i class="fas fa-trash-alt text-[14px]"></i></div></li>`).join('') || '<p class="text-xs text-gray-500">Belum ada mapel. Tambahkan di atas.</p>';
+        };
+        window.tambahMapelSekolah = async () => {
+            if (getCurrentRole() !== 'admin_sekolah') return showToast("Hanya Admin Sekolah yang boleh!", true);
+            const inp = document.getElementById('in-mapel-sekolah'); const nama = inp.value.trim(); if (!nama) return showToast("Isi nama mapel!", true);
+            const { sId } = aturCtx(); const sch = DB.schools.find(x => x.id === sId); if (!sch) return;
+            if (schoolSubjects(sId).some(m => (m.nama || '').toLowerCase() === nama.toLowerCase())) return showToast("Mapel itu sudah ada di sekolah ini!", true);
+            const btn = document.getElementById('btn-tambah-mapel-sekolah'); const oldTxt = btn.innerHTML; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>'; btn.disabled = true;
+            try {
+                const sama = DB.subjects.find(m => (m.nama || '').toLowerCase() === nama.toLowerCase() && (!m.sekolah_id || m.sekolah_id === sId));
+                let newId;
+                if (sama) newId = sama.id; else { const ref = await addDoc(collection(db, 'subjects'), { nama: nama, sekolah_id: sId }); newId = ref.id; await window.forceCacheUpdate('subjects'); }
+                const cur = (sch.mapel_ids && sch.mapel_ids.length) ? sch.mapel_ids : schoolSubjects(sId).map(m => m.id);
+                await execWrite('schools', { mapel_ids: Array.from(new Set([...cur, newId])) }, sId);
+                inp.value = ''; window.renderMapelSekolah(); window.renderAturPenugasan(); showToast("Mapel ditambahkan!");
+            } catch (e) { showToast("Gagal: " + e.message, true); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
+        };
+        window.hapusMapelSekolah = async (mId) => {
+            if (getCurrentRole() !== 'admin_sekolah') return;
+            const { sId } = aturCtx(); const next = schoolSubjects(sId).map(m => m.id).filter(id => id !== mId);
+            if (next.length === 0) return showToast("Sekolah harus punya minimal satu mapel.", true);
+            if (!confirm("Keluarkan mapel ini dari sekolah? Guru yang memakainya tidak lagi melihat mapel ini di absensi dan nilai.")) return;
+            try { await execWrite('schools', { mapel_ids: next }, sId); window.renderMapelSekolah(); window.renderAturPenugasan(); showToast("Mapel dikeluarkan."); } catch (e) { showToast("Gagal: " + e.message, true); }
+        };
+
         // --- MANAJEMEN ABSENSI SISWA ---
         window.setModeAbsensi = (mode) => {
             document.getElementById('absensi-harian-view').classList.toggle('hidden', mode !== 'harian'); document.getElementById('absensi-bulanan-view').classList.toggle('hidden', mode !== 'bulanan');
@@ -1369,21 +1473,14 @@
             if(mode === 'bulanan') window.renderBulanAbsensi(); else window.renderTableAbsensi();
         };
 
-        const setupAbsensi = () => {
-            const allowed = getAllowed(); const cRole = getCurrentRole();
-            let kls = DB.classes.filter(c => allowed.sc.includes(c.sekolah_id));
-            if(cRole !== 'admin' && cRole !== 'kepala_sekolah' && cRole !== 'admin_sekolah') kls = kls.filter(c => allowed.cl.includes(c.id));
-            
-            let opts = `<option value="">-- Pilih Kelas --</option>`; kls.forEach(c => opts += `<option value="${c.id}">${c.nama}</option>`);
-            document.getElementById('abs-kelas').innerHTML = opts; document.getElementById('abs-kelas-bulan').innerHTML = opts;
-            window.renderTableAbsensi();
-        };
+        const setupAbsensi = () => { refreshFilter('abs', ''); refreshFilter('abs', '-bulan'); window.renderTableAbsensi(); };
 
         window.renderTableAbsensi = () => {
-            const kId = document.getElementById('abs-kelas').value; const tgl = document.getElementById('abs-tanggal').value;
-            if(!kId) { document.getElementById('body-absensi').innerHTML = '<tr><td colspan="3" class="px-6 py-8 text-left text-[10px] uppercase tracking-widest text-gray-500 font-bold bg-gray-50">Silakan pilih kelas.</td></tr>'; return; }
+            const kId = document.getElementById('abs-kelas').value; const tgl = document.getElementById('abs-tanggal').value; const awal = isJenjangAwal(ctxSid()); const mId = awal ? '' : document.getElementById('abs-mapel').value;
+            if(!document.getElementById('abs-peran').value) { document.getElementById('body-absensi').innerHTML = '<tr><td colspan="3" class="px-6 py-8 text-left text-[10px] uppercase tracking-widest text-gray-500 font-bold bg-gray-50">Absensi TK/RA dan SD/MI diisi oleh wali kelas. Anda belum ditugaskan sebagai wali kelas.</td></tr>'; return; }
+            if(!kId || (!awal && !mId)) { document.getElementById('body-absensi').innerHTML = '<tr><td colspan="3" class="px-6 py-8 text-left text-[10px] uppercase tracking-widest text-gray-500 font-bold bg-gray-50">Silakan pilih kelas' + (awal ? '' : ' dan mapel') + '.</td></tr>'; return; }
             
-            const dataLama = DB.attendance.find(a => a.kelas_id === kId && a.tanggal === tgl)?.data || {};
+            const dataLama = DB.attendance.find(a => a.kelas_id === kId && a.tanggal === tgl && (awal ? !a.mapel_id : a.mapel_id === mId))?.data || {};
             let htmlTbl = '';
             DB.students.filter(s => s.kelas_id === kId).forEach(s => {
                 const stat = dataLama[s.nis] || 'Hadir'; 
@@ -1398,20 +1495,21 @@
         };
 
         window.simpanAbsensi = async () => {
-            const tgl = document.getElementById('abs-tanggal').value; const kId = document.getElementById('abs-kelas').value;
+            const tgl = document.getElementById('abs-tanggal').value; const kId = document.getElementById('abs-kelas').value; const awal = isJenjangAwal(ctxSid()); const mId = awal ? '' : document.getElementById('abs-mapel').value;
             if(!tgl || !kId) return showToast("Pilih Tanggal dan Kelas!", true);
+            if(!awal && !mId) return showToast("Pilih Mata Pelajaran!", true);
             
             const btn = document.getElementById('btn-simpan-absensi'); const oldTxt = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Memproses...'; btn.disabled = true;
             
             const dataToSave = {}; document.querySelectorAll('.sel-absen').forEach(el => { dataToSave[el.dataset.nis] = el.value; });
-            try { await execWrite('attendance', { tanggal: tgl, kelas_id: kId, data: dataToSave }, `abs_${kId}_${tgl}`); showToast("Disimpan!"); window.updateDashboardData(); } 
+            try { if (awal) await execWrite('attendance', { tanggal: tgl, kelas_id: kId, data: dataToSave }, `abs_${kId}_${tgl}`); else await execWrite('attendance', { tanggal: tgl, kelas_id: kId, mapel_id: mId, data: dataToSave }, `abs_${kId}_${mId}_${tgl}`); showToast("Disimpan!"); window.updateDashboardData(); } 
             catch(e) { showToast("Gagal: " + e.message, true); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
         };
 
         window.renderBulanAbsensi = () => {
-            const kId = document.getElementById('abs-kelas-bulan').value; const bln = document.getElementById('abs-bulan').value;
-            if(!kId || !bln) { document.getElementById('body-absensi-bulan').innerHTML = '<tr><td colspan="36" class="px-6 py-8 text-left text-[10px] uppercase tracking-widest text-gray-500 font-bold bg-gray-50">Pilih Kelas & Bulan.</td></tr>'; return; }
+            const kId = document.getElementById('abs-kelas-bulan').value; const bln = document.getElementById('abs-bulan').value; const awal = isJenjangAwal(ctxSid()); const mId = awal ? '' : document.getElementById('abs-mapel-bulan').value;
+            if(!kId || !bln || (!awal && !mId)) { document.getElementById('body-absensi-bulan').innerHTML = '<tr><td colspan="36" class="px-6 py-8 text-left text-[10px] uppercase tracking-widest text-gray-500 font-bold bg-gray-50">Pilih Kelas, Mapel (SMP/SMA) & Bulan.</td></tr>'; return; }
             
             const daysInMonth = new Date(bln.split('-')[0], bln.split('-')[1], 0).getDate();
             let headHtml = '<tr><th class="px-2 py-3 border-r border-gray-200 text-left">NIS</th><th class="px-4 py-3 border-r border-gray-200 text-left">Nama Siswa</th>';
@@ -1419,7 +1517,7 @@
             headHtml += '<th class="px-2 py-3 border-r border-gray-200 text-center text-[9px] text-green-700 bg-green-50">HADIR</th><th class="px-2 py-3 border-r border-gray-200 text-center text-[9px] text-yellow-700 bg-yellow-50">SAKIT</th><th class="px-2 py-3 border-r border-gray-200 text-center text-[9px] text-blue-700 bg-blue-50">IZIN</th><th class="px-2 py-3 text-center text-[9px] text-red-700 bg-red-50">ALPA</th></tr>';
             document.getElementById('head-absensi-bulan').innerHTML = headHtml;
 
-            const records = DB.attendance.filter(a => a.kelas_id === kId && a.tanggal.startsWith(bln)); const clsStudents = DB.students.filter(s => s.kelas_id === kId);
+            const records = DB.attendance.filter(a => a.kelas_id === kId && a.tanggal.startsWith(bln) && (awal ? !a.mapel_id : a.mapel_id === mId)); const clsStudents = DB.students.filter(s => s.kelas_id === kId);
             
             let bHtml = '';
             clsStudents.forEach(s => {
@@ -1446,26 +1544,7 @@
             if(mode === 'bulanan') window.renderBulanNilai(); else window.renderTableNilai();
         };
 
-        const setupNilai = () => {
-            const allowed = getAllowed(); const cRole = getCurrentRole();
-            let mpl = DB.subjects; let kls = DB.classes.filter(c => allowed.sc.includes(c.sekolah_id));
-            if(cRole !== 'admin') {
-                const p = currentUser.data.penugasan[currentUser.activeAssignmentIndex];
-                if(cRole !== 'kepala_sekolah' && cRole !== 'admin_sekolah') {
-                    kls = kls.filter(c => allowed.cl.includes(c.id));
-                    if (cRole === 'guru_mapel') mpl = DB.subjects.filter(m => allowed.ma.includes(m.id)); 
-                    else { const schData = DB.schools.find(s => s.id === p.sekolah_id); if(schData && schData.mapel_ids) mpl = DB.subjects.filter(m => schData.mapel_ids.includes(m.id)); else mpl = []; }
-                } else {
-                    kls = kls.filter(c => c.sekolah_id === p.sekolah_id);
-                    const schData = DB.schools.find(s => s.id === p.sekolah_id);
-                    if(schData && schData.mapel_ids) mpl = DB.subjects.filter(m => schData.mapel_ids.includes(m.id));
-                }
-            }
-            let optsMpl = `<option value="">-- Pilih Mapel --</option>`; mpl.forEach(m => optsMpl += `<option value="${m.id}">${m.nama}</option>`);
-            let optsKls = `<option value="">-- Pilih Kelas --</option>`; kls.forEach(c => optsKls += `<option value="${c.id}">${c.nama}</option>`);
-            
-            document.getElementById('nil-mapel').innerHTML = optsMpl; document.getElementById('nil-mapel-bulan').innerHTML = optsMpl; document.getElementById('nil-kelas').innerHTML = optsKls; document.getElementById('nil-kelas-bulan').innerHTML = optsKls; window.renderTableNilai();
-        };
+        const setupNilai = () => { refreshFilter('nil', ''); refreshFilter('nil', '-bulan'); window.renderTableNilai(); };
 
         window.renderTableNilai = () => {
             const kId = document.getElementById('nil-kelas').value; const mId = document.getElementById('nil-mapel').value; const tgl = document.getElementById('nil-tanggal').value;
@@ -1527,36 +1606,50 @@
         };
 
         // --- SISTEM EKSPOR WORD & EXCEL ---
-        window.getSignatures = (sekolahId, kelasId, mapelId) => {
+        window.getSignatures = (sekolahId, kelasId, mapelId, role) => {
             let kepsek = { nama: ".......................", nip: "-" }; let guru = { nama: ".......................", nip: "-" }; let schoolName = "";
-            let sData = DB.schools.find(s => s.id === sekolahId); if(sData) schoolName = sData.nama.toUpperCase();
+            const sData = DB.schools.find(s => s.id === sekolahId); if(sData) schoolName = sData.nama;
 
-            let k = DB.teachers.find(t => t.penugasan && t.penugasan.some(p => p.sekolah_id === sekolahId && p.role === 'kepala_sekolah'));
+            const k = DB.teachers.find(t => t.penugasan && t.penugasan.some(p => p.sekolah_id === sekolahId && p.role === 'kepala_sekolah'));
             if(k) kepsek = { nama: k.nama, nip: k.nip || "-" };
-            
-            let g;
-            if(mapelId) g = DB.teachers.find(t => t.penugasan && t.penugasan.some(p => p.sekolah_id === sekolahId && p.kelas_ids?.includes(kelasId) && p.mapel_ids?.includes(mapelId) && p.role === 'guru_mapel'));
-            else g = DB.teachers.find(t => t.penugasan && t.penugasan.some(p => p.sekolah_id === sekolahId && p.kelas_ids?.includes(kelasId) && p.role === 'wali_kelas'));
+
+            const cocok = (t) => (t.penugasan || []).some(p => p.sekolah_id === sekolahId && p.role === role && (p.kelas_ids || []).includes(kelasId) && (role !== 'guru_mapel' || !mapelId || (p.mapel_ids || []).includes(mapelId)));
+            const own = (currentUser && currentUser.role === 'guru') ? currentUser.data : null;
+            const g = (own && cocok(own)) ? own : DB.teachers.find(cocok);
             if(g) guru = { nama: g.nama, nip: g.nip || "-" };
 
             return { kepsek, guru, schoolName };
         };
 
+        window.getExportCtx = (tipe) => {
+            const t = tipe === 'absensi' ? 'abs' : 'nil';
+            const role = document.getElementById(`${t}-peran-bulan`).value; const kelasId = document.getElementById(`${t}-kelas-bulan`).value;
+            const blnVal = document.getElementById(`${t}-bulan`).value; const cls = DB.classes.find(c => c.id === kelasId);
+            if(!role) { showToast("Peran belum tersedia. Hubungi Admin Sekolah.", true); return null; }
+            if(!cls) { showToast("Pilih kelas terlebih dahulu!", true); return null; }
+            if(!blnVal) { showToast("Pilih bulan terlebih dahulu!", true); return null; }
+            const sekolahId = cls.sekolah_id; const awal = isJenjangAwal(sekolahId);
+            const perluMapel = tipe === 'nilai' || !awal;
+            const mapelId = perluMapel ? document.getElementById(`${t}-mapel-bulan`).value : null;
+            if(perluMapel && !mapelId) { showToast("Pilih mata pelajaran terlebih dahulu!", true); return null; }
+            const mapelNama = mapelId ? ((DB.subjects.find(m => m.id === mapelId) || {}).nama || '') : '';
+            const roleEff = (tipe === 'absensi' && awal) ? 'wali_kelas' : role;
+            const guruTitle = roleEff === 'wali_kelas' ? `Wali Kelas ${kelasRomawi(cls.nama)}` : 'Guru Mapel';
+            return { sekolahId, kelasId, mapelId, blnVal, role: roleEff, guruTitle, mapelNama };
+        };
+
         window.exportToExcel = (tipe, tableId) => {
             const table = document.getElementById(tableId); if(!table || table.rows.length <= 1) return showToast("Tabel kosong!", true);
             
-            let sekolahId = '', kelasId = '', mapelId = null, blnVal = '';
-            if(tipe === 'absensi') { kelasId = document.getElementById('abs-kelas-bulan').value; blnVal = document.getElementById('abs-bulan').value; } 
-            else { kelasId = document.getElementById('nil-kelas-bulan').value; mapelId = document.getElementById('nil-mapel-bulan').value; blnVal = document.getElementById('nil-bulan').value; }
-            const cls = DB.classes.find(c => c.id === kelasId); if(cls) sekolahId = cls.sekolah_id;
+            const ex = window.getExportCtx(tipe); if(!ex) return; const { sekolahId, kelasId, mapelId, blnVal } = ex;
 
             const semester = tipe === 'absensi' ? document.getElementById('abs-semester').value : document.getElementById('nil-semester').value;
             const year = blnVal.split('-')[0]; const monthNum = parseInt(blnVal.split('-')[1]);
             const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
             const titleStr = `REKAP ${tipe === 'absensi' ? 'ABSENSI' : 'NILAI'} BULAN ${months[monthNum - 1].toUpperCase()} SEMESTER ${semester} TAHUN ${year}`;
 
-            const sigs = window.getSignatures(sekolahId, kelasId, mapelId);
-            const guruTitle = tipe === 'absensi' ? 'Wali Kelas' : 'Guru Mata Pelajaran';
+            const sigs = window.getSignatures(sekolahId, kelasId, mapelId, ex.role);
+            const guruTitle = ex.guruTitle; const mapelLine = ex.mapelNama ? 'Mata Pelajaran : ' + ex.mapelNama : '';
             const schData = DB.schools.find(x => x.id === sekolahId); const logoUrl = schData?.logo_kop || '';
             const imgTag = logoUrl ? `<img src="${logoUrl}" width="65" height="65" alt="Logo">` : '';
 
@@ -1577,10 +1670,10 @@
             <body>
                 <table>${colgroup}<thead>
                     <tr><td colspan="4" rowspan="3" style="border:none; text-align:center; vertical-align:middle;">${imgTag}</td><td colspan="${totalCols - 4}" class="header-title">${titleStr}</td></tr>
-                    <tr><td colspan="${totalCols - 4}" style="border:none;"></td></tr><tr><td colspan="${totalCols - 4}" style="border:none;"></td></tr><tr><td colspan="${totalCols}" style="border:none; height:10px;"></td></tr>
+                    <tr><td colspan="${totalCols - 4}" style="border:none; text-align:center; font-size:11pt; font-weight:bold;">${mapelLine}</td></tr><tr><td colspan="${totalCols - 4}" style="border:none;"></td></tr><tr><td colspan="${totalCols}" style="border:none; height:10px;"></td></tr>
                 </thead>${tempTable.innerHTML}</table>
                 <table class="sig-table">
-                    <tr><td colspan="6">Mengetahui,<br>${guruTitle}</td><td colspan="${totalCols - 18}"></td><td colspan="12">Kepala Sekolah ${sigs.schoolName}<br>&nbsp;</td></tr>
+                    <tr><td colspan="6">Mengetahui,<br>${guruTitle}</td><td colspan="${totalCols - 18}"></td><td colspan="12">Mengetahui,<br>Kepala Sekolah ${sigs.schoolName}</td></tr>
                     <tr><td colspan="${totalCols}" style="height: 60px;">&nbsp;</td></tr>
                     <tr><td colspan="6"><span class="underline">${sigs.guru.nama}</span><br>NIP. ${sigs.guru.nip}</td><td colspan="${totalCols - 18}"></td><td colspan="12"><span class="underline">${sigs.kepsek.nama}</span><br>NIP. ${sigs.kepsek.nip}</td></tr>
                 </table>
@@ -1594,18 +1687,15 @@
         window.exportToWord = (tipe, tableId) => {
             const table = document.getElementById(tableId); if(!table || table.rows.length <= 1) return showToast("Tabel kosong!", true);
             
-            let sekolahId = '', kelasId = '', mapelId = null, blnVal = '';
-            if(tipe === 'absensi') { kelasId = document.getElementById('abs-kelas-bulan').value; blnVal = document.getElementById('abs-bulan').value; } 
-            else { kelasId = document.getElementById('nil-kelas-bulan').value; mapelId = document.getElementById('nil-mapel-bulan').value; blnVal = document.getElementById('nil-bulan').value; }
-            const cls = DB.classes.find(c => c.id === kelasId); if(cls) sekolahId = cls.sekolah_id;
+            const ex = window.getExportCtx(tipe); if(!ex) return; const { sekolahId, kelasId, mapelId, blnVal } = ex;
 
             const semester = tipe === 'absensi' ? document.getElementById('abs-semester').value : document.getElementById('nil-semester').value;
             const year = blnVal.split('-')[0]; const monthNum = parseInt(blnVal.split('-')[1]);
             const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
             const titleStr = `REKAP ${tipe === 'absensi' ? 'ABSENSI' : 'NILAI'} BULAN ${months[monthNum - 1].toUpperCase()} SEMESTER ${semester} TAHUN ${year}`;
 
-            const sigs = window.getSignatures(sekolahId, kelasId, mapelId);
-            const guruTitle = tipe === 'absensi' ? 'Wali Kelas' : 'Guru Mata Pelajaran';
+            const sigs = window.getSignatures(sekolahId, kelasId, mapelId, ex.role);
+            const guruTitle = ex.guruTitle; const mapelLine = ex.mapelNama ? 'Mata Pelajaran : ' + ex.mapelNama : '';
             const schData = DB.schools.find(x => x.id === sekolahId); const logoUrl = schData?.logo_kop || '';
             const imgTag = logoUrl ? `<img src="${logoUrl}" width="65" height="65" style="vertical-align:middle; margin-right:15px;" alt="Logo">` : '';
 
@@ -1616,9 +1706,9 @@
             let docHtml = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
             <head><meta charset="utf-8"><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]-->
             <style> @page Section1 { size: 13.0in 8.5in; mso-page-orientation: landscape; margin: 0.4in 0.4in 0.4in 0.4in; } div.Section1 { page: Section1; } body { font-family: 'Arial', sans-serif; font-size: 8pt; } table { border-collapse: collapse; width: 100%; margin-top: 10px; table-layout: fixed; } .kop { border: none !important; margin-bottom: 15px; width: 100%; } .kop td { border: none !important; } .title { font-size: 14pt; font-weight: bold; text-align: center; vertical-align: middle; } .sig { border: none !important; margin-top: 30px; width: 100%; page-break-inside: avoid; } .sig td { border: none !important; font-size: 9.5pt; text-align: center; } .underline { text-decoration: underline; font-weight: bold; } </style></head>
-            <body><div class="Section1"><table class="kop"><tr><td style="width: 80px; text-align: center;">${imgTag}</td><td class="title">${titleStr}</td></tr></table>
+            <body><div class="Section1"><table class="kop"><tr><td style="width: 80px; text-align: center;">${imgTag}</td><td class="title">${titleStr}${mapelLine ? '<br><span style="font-size:11pt; font-weight:normal;">' + mapelLine + '</span>' : ''}</td></tr></table>
             ${tempTable.outerHTML}
-            <table class="sig"><tr><td style="width: 40%;">Mengetahui,<br>${guruTitle}</td><td style="width: 20%;"></td><td style="width: 40%;">Kepala Sekolah ${sigs.schoolName}<br>&nbsp;</td></tr>
+            <table class="sig"><tr><td style="width: 40%;">Mengetahui,<br>${guruTitle}</td><td style="width: 20%;"></td><td style="width: 40%;">Mengetahui,<br>Kepala Sekolah ${sigs.schoolName}</td></tr>
             <tr><td style="height: 60px;">&nbsp;</td><td>&nbsp;</td><td style="height: 60px;">&nbsp;</td></tr>
             <tr><td><span class="underline">${sigs.guru.nama}</span><br>NIP. ${sigs.guru.nip}</td><td></td><td><span class="underline">${sigs.kepsek.nama}</span><br>NIP. ${sigs.kepsek.nip}</td></tr></table></div></body></html>`;
 
@@ -1648,6 +1738,7 @@
             });
             container.innerHTML = htmlPenugasan;
             const pnlAtur = document.getElementById('panel-atur-penugasan'); pnlAtur.classList.toggle('hidden', cRole !== 'admin_sekolah'); if (cRole === 'admin_sekolah') window.renderAturPenugasan();
+            document.getElementById('panel-mapel-sekolah').classList.toggle('hidden', cRole !== 'admin_sekolah'); if (cRole === 'admin_sekolah') window.renderMapelSekolah();
 
             const pnlDelegasi = document.getElementById('panel-delegasi-kepsek'); const pnlReset = document.getElementById('panel-reset-tahunan');
             if(cRole === 'kepala_sekolah') {
@@ -1693,12 +1784,12 @@
             if (!tId) { box.innerHTML = "<p class='text-xs text-gray-500'>Pilih guru terlebih dahulu.</p>"; return; }
             const { sId } = aturCtx(); const t = DB.teachers.find(x => x.id === tId); const sch = DB.schools.find(x => x.id === sId);
             const cur = (t && t.penugasan || []).find(p => p.sekolah_id === sId && p.role === role) || { kelas_ids: [], mapel_ids: [] };
-            let mp = DB.subjects; if (sch && sch.mapel_ids && sch.mapel_ids.length) mp = mp.filter(m => sch.mapel_ids.includes(m.id));
+            const mp = schoolSubjects(sId);
             const item = (name, val, on, label) => `<label class="flex items-center gap-3 py-2 cursor-pointer px-2 rounded min-w-0 w-full"><input type="checkbox" name="${name}" value="${val}" ${on ? 'checked' : ''} class="accent-black w-5 h-5 shrink-0"> <span class="text-[11px] font-bold text-gray-800 uppercase break-words min-w-0">${label}</span></label>`;
             const kls = DB.classes.filter(c => c.sekolah_id === sId);
             const wrap = (title, inner) => `<div class="min-w-0"><p class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">${title}</p><div class="max-h-48 overflow-y-auto custom-scrollbar border border-gray-200 rounded-xl p-2">${inner}</div></div>`;
             let h = '';
-            if (role === 'guru_mapel') h += wrap('Mata Pelajaran', mp.map(m => item('atur_mapel', m.id, (cur.mapel_ids || []).includes(m.id), m.nama)).join('') || "<span class='text-xs text-gray-500'>Belum ada mapel.</span>");
+            h += wrap('Mata Pelajaran yang Diampu', mp.map(m => item('atur_mapel', m.id, (cur.mapel_ids || []).includes(m.id), m.nama)).join('') || "<span class='text-xs text-gray-500'>Belum ada mapel.</span>");
             h += wrap(role === 'wali_kelas' ? 'Kelas yang Diwali' : 'Kelas yang Diajar', kls.map(c => item('atur_kelas', c.id, (cur.kelas_ids || []).includes(c.id), c.nama)).join('') || "<span class='text-xs text-gray-500'>Belum ada kelas.</span>");
             box.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${h}</div>`;
         };
@@ -1711,7 +1802,9 @@
             if (!(t.penugasan || []).some(p => p.sekolah_id === sId)) return showToast("Guru ini bukan bagian dari sekolah Anda!", true);
             const sch = DB.schools.find(x => x.id === sId);
             const kelas = Array.from(document.querySelectorAll('input[name="atur_kelas"]:checked')).map(c => c.value);
-            const mapel = role === 'guru_mapel' ? Array.from(document.querySelectorAll('input[name="atur_mapel"]:checked')).map(c => c.value) : ((sch && sch.mapel_ids) || []);
+            const mapel = Array.from(document.querySelectorAll('input[name="atur_mapel"]:checked')).map(c => c.value);
+            if (!mapel.every(m => schoolSubjects(sId).some(x => x.id === m))) return showToast("Ada mapel yang bukan milik sekolah Anda!", true);
+            if (role === 'wali_kelas' && kelas.length && mapel.length === 0) return showToast("Wali Kelas: centang minimal satu Mata Pelajaran.", true);
             if (!kelas.every(k => DB.classes.some(c => c.id === k && c.sekolah_id === sId))) return showToast("Ada kelas yang bukan milik sekolah Anda!", true);
             if (role === 'guru_mapel' && (kelas.length === 0) !== (mapel.length === 0)) return showToast("Guru Mapel: centang Mapel DAN Kelas, atau kosongkan keduanya untuk menghapus tugas.", true);
             if (role === 'wali_kelas' && kelas.length) {
@@ -1789,15 +1882,14 @@
         window.toggleCheckboxes = () => {
             const role = document.getElementById('tmp-role').value; const bMapel = document.getElementById('wrap-mapel'); const bKelas = document.getElementById('wrap-kelas');
             bMapel.classList.add('hidden'); bMapel.classList.remove('flex'); bKelas.classList.add('hidden'); bKelas.classList.remove('flex');
-            if (role === 'wali_kelas' || role === 'guru_mapel') { bKelas.classList.remove('hidden'); bKelas.classList.add('flex'); document.getElementById('label-kelas').innerText = role === 'wali_kelas' ? 'Pilih Kelas Diampu (Wali Kelas)' : 'Pilih Kelas Diampu (Guru Mapel)'; if (role === 'guru_mapel') { bMapel.classList.remove('hidden'); bMapel.classList.add('flex'); } }
+            if (role === 'wali_kelas' || role === 'guru_mapel') { bKelas.classList.remove('hidden'); bKelas.classList.add('flex'); document.getElementById('label-kelas').innerText = role === 'wali_kelas' ? 'Pilih Kelas Diampu (Wali Kelas)' : 'Pilih Kelas Diampu (Guru Mapel)'; bMapel.classList.remove('hidden'); bMapel.classList.add('flex'); }
         };
         
         window.renderCheckboxes = () => {
             const sid = document.getElementById('tmp-sekolah').value;
             if(!sid) { document.getElementById('check-mapel').innerHTML = 'Pilih sekolah dulu'; document.getElementById('check-kelas').innerHTML = 'Pilih sekolah dulu'; return; }
             
-            const sch = DB.schools.find(s => s.id === sid); let avMapels = DB.subjects;
-            if(sch && sch.mapel_ids && sch.mapel_ids.length > 0) { avMapels = DB.subjects.filter(m => sch.mapel_ids.includes(m.id)); }
+            let avMapels = schoolSubjects(sid);
             
             let mHtml = '';
             avMapels.forEach(m => mHtml += `<label class="flex items-center gap-3 py-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 px-2 rounded min-w-0 pr-2 w-full"><input type="checkbox" name="chk_mapel" value="${m.id}" class="accent-black w-5 h-5 shrink-0"> <span class="text-[11px] font-bold text-gray-800 dark:text-gray-200 uppercase pr-2 truncate">${m.nama}</span></label>`);
@@ -1815,10 +1907,10 @@
             const schData = DB.schools.find(x=>x.id===sid); const sName = schData.nama;
             let rName = role==='wali_kelas'?'Wali Kelas':(role==='guru_mapel'?'Guru Mapel':(role==='admin_sekolah'?'Admin Sekolah':'Kepala Sekolah'));
             
-            let mapels = []; if (role === 'guru_mapel') mapels = Array.from(document.querySelectorAll('input[name="chk_mapel"]:checked')).map(c=>c.value); else if (role === 'wali_kelas') mapels = schData.mapel_ids || []; 
+            let mapels = []; if (role === 'guru_mapel' || role === 'wali_kelas') mapels = Array.from(document.querySelectorAll('input[name="chk_mapel"]:checked')).map(c=>c.value); 
             const kelas = Array.from(document.querySelectorAll('input[name="chk_kelas"]:checked')).map(c=>c.value);
 
-            if(role === 'wali_kelas' && kelas.length === 0) { if(fromBtn) showToast("Wali Kelas wajib centang Kelas!", true); return false; }
+            if(role === 'wali_kelas' && (kelas.length === 0 || mapels.length === 0)) { if(fromBtn) showToast("Wali Kelas wajib centang Kelas & Mapel yang diampu!", true); return false; }
             if(role === 'guru_mapel' && (kelas.length === 0 || mapels.length === 0)) { if(fromBtn) showToast("Guru Mapel wajib centang Mapel & Kelas!", true); return false; }
 
             const isDup = tempPenugasan.some(p => p.sekolah_id === sid && p.role === role);
@@ -1836,8 +1928,8 @@
             
             let html = '';
             tempPenugasan.forEach((p, i) => {
-                const k = DB.classes.filter(x=>p.kelas_ids?.includes(x.id)).map(x=>x.nama).join(', ') || '-';
-                let det = p.role==='wali_kelas'? `Kls: ${k} (Full Mapel)` : (p.role==='guru_mapel'? `Kls: ${k}` : 'Akses Penuh');
+                const k = DB.classes.filter(x=>p.kelas_ids?.includes(x.id)).map(x=>x.nama).join(', ') || '-'; const mp = DB.subjects.filter(x=>p.mapel_ids?.includes(x.id)).map(x=>x.nama).join(', ') || '-';
+                let det = (p.role==='wali_kelas'||p.role==='guru_mapel') ? `Kls: ${k} | Mapel: ${mp}` : 'Akses Penuh';
                 html += `<div class="p-4 border border-gray-200 rounded-xl flex justify-between items-center bg-white shadow-sm w-full min-w-0"><div class="pr-4 min-w-0 flex-1 break-words"><p class="font-black text-[11px] text-gray-900 mb-1 uppercase pr-2 flex items-center flex-wrap gap-1"><span>${p.sekolah_nama}</span> <span class="bg-gray-100 border border-gray-200 px-2 py-0.5 rounded text-[9px] font-bold tracking-widest shrink-0">${p.role_nama}</span></p><p class="text-[9px] text-gray-500 font-bold break-words pr-2">${det}</p></div><div onclick="window.hapusPenugasan(${i})" aria-label="Hapus Tugas" class="action-icon shrink-0"><i class="fas fa-trash-alt text-[14px]"></i></div></div>`;
             });
             list.innerHTML = html;
@@ -1914,14 +2006,14 @@
         
         window.simpanMasterSekolah = async () => { 
             const uid = document.getElementById('in-sekolah-uid').value; const val = document.getElementById('in-nama-sekolah').value.trim(); const logoKopVal = document.getElementById('in-logo-sekolah').value.trim(); 
-            if(!val) return showToast("Isi Nama Sekolah!", true); const mapels = Array.from(document.querySelectorAll('input[name="chk_mapel_sekolah"]:checked')).map(c=>c.value);
+            const jenjang = document.getElementById('in-jenjang-sekolah').value; if(!val) return showToast("Isi Nama Sekolah!", true); if(!jenjang) return showToast("Pilih Jenjang sekolah!", true); const mapels = Array.from(document.querySelectorAll('input[name="chk_mapel_sekolah"]:checked')).map(c=>c.value);
             
             const btn = document.getElementById('btn-simpan-sekolah'); const oldTxt = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>'; btn.disabled = true;
             try { 
-                const dataSimpan = { nama: val, mapel_ids: mapels }; if(logoKopVal) dataSimpan.logo_kop = logoKopVal;
+                const dataSimpan = { nama: val, jenjang: jenjang, mapel_ids: mapels }; if(logoKopVal) dataSimpan.logo_kop = logoKopVal;
                 if (uid) { await execWrite('schools', dataSimpan, uid); } else { await execWrite('schools', dataSimpan); }
-                document.getElementById('in-sekolah-uid').value = ''; document.getElementById('in-nama-sekolah').value = ''; document.getElementById('in-logo-sekolah').value = ''; 
+                document.getElementById('in-sekolah-uid').value = ''; document.getElementById('in-jenjang-sekolah').value = ''; document.getElementById('in-nama-sekolah').value = ''; document.getElementById('in-logo-sekolah').value = ''; 
                 document.getElementById('btn-simpan-sekolah').innerText = 'Tambah'; document.querySelectorAll('input[name="chk_mapel_sekolah"]').forEach(cb => cb.checked = false);
                 renderMaster(); showToast("Sekolah Disimpan!"); 
             } catch(e) { showToast(e.message, true); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
@@ -1929,7 +2021,7 @@
 
         window.editSekolah = (id) => {
             const s = DB.schools.find(x => x.id === id); if(!s) return;
-            document.getElementById('in-sekolah-uid').value = s.id; document.getElementById('in-nama-sekolah').value = s.nama; document.getElementById('in-logo-sekolah').value = s.logo_kop || ''; document.getElementById('btn-simpan-sekolah').innerText = 'Simpan Edit';
+            document.getElementById('in-sekolah-uid').value = s.id; document.getElementById('in-jenjang-sekolah').value = s.jenjang || ''; document.getElementById('in-nama-sekolah').value = s.nama; document.getElementById('in-logo-sekolah').value = s.logo_kop || ''; document.getElementById('btn-simpan-sekolah').innerText = 'Simpan Edit';
             document.querySelectorAll('input[name="chk_mapel_sekolah"]').forEach(cb => cb.checked = false);
             if(s.mapel_ids) { s.mapel_ids.forEach(mId => { const cb = document.querySelector(`input[name="chk_mapel_sekolah"][value="${mId}"]`); if(cb) cb.checked = true; }); }
             showToast("Edit Mode Aktif"); window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1949,7 +2041,7 @@
             const notifDoc = DB.settings.find(s => s.id === 'global_notif'); if(notifDoc && notifDoc.active) document.getElementById('in-reset-msg').value = notifDoc.message;
             
             let schHtml = '';
-            DB.schools.forEach(i => schHtml += `<li class="flex justify-between items-center bg-white p-3 md:p-4 rounded-xl border border-gray-200 shadow-sm w-full"><span class="font-bold text-[11px] uppercase tracking-widest text-gray-900 truncate pr-4 flex-1 min-w-0">${i.nama}</span><div class="flex gap-2 shrink-0"><div onclick="window.editSekolah('${i.id}')" aria-label="Edit" class="action-icon"><i class="fas fa-edit text-[14px]"></i></div><div onclick="window.hapusItem('schools','${i.id}')" aria-label="Hapus" class="action-icon"><i class="fas fa-trash-alt text-[14px]"></i></div></div></li>`);
+            DB.schools.forEach(i => schHtml += `<li class="flex justify-between items-center bg-white p-3 md:p-4 rounded-xl border border-gray-200 shadow-sm w-full"><span class="font-bold text-[11px] uppercase tracking-widest text-gray-900 truncate pr-4 flex-1 min-w-0">${i.nama}</span><span class="bg-gray-100 border border-gray-200 px-2 py-0.5 rounded text-[9px] font-bold tracking-widest shrink-0 mr-2">${jenjangLabel(i.jenjang)}</span><div class="flex gap-2 shrink-0"><div onclick="window.editSekolah('${i.id}')" aria-label="Edit" class="action-icon"><i class="fas fa-edit text-[14px]"></i></div><div onclick="window.hapusItem('schools','${i.id}')" aria-label="Hapus" class="action-icon"><i class="fas fa-trash-alt text-[14px]"></i></div></div></li>`);
             document.getElementById('list-sekolah').innerHTML = schHtml;
             
             let mapHtml = '';
