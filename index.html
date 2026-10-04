@@ -510,6 +510,16 @@
                         <div class="mb-6"><h2 class="text-2xl font-black text-gray-900 tracking-tight">Konteks Pekerjaan</h2><p class="text-xs text-gray-500 font-medium mt-1">Beralih mode peran atau sekolah tempat Anda mengajar.</p></div>
                         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 max-w-full" id="list-penugasan-guru"></div>
                         
+                        <div id="panel-atur-penugasan" class="hidden modern-card border-t-4 border-t-blue-500 mt-8 shadow-md w-full max-w-full">
+                            <h3 class="font-black mb-2 text-sm uppercase tracking-widest text-gray-900"><i class="fas fa-chalkboard-teacher text-blue-500 mr-2"></i> Atur Mapel &amp; Wali Kelas Guru</h3>
+                            <p class="text-[10px] text-gray-500 mb-5 font-bold">Pilih guru, tentukan tugasnya, lalu centang mata pelajaran dan kelasnya. Mengosongkan semua centang akan menghapus tugas tersebut. Hanya berlaku untuk guru di sekolah ini.</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                                <div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Guru</label><select id="sel-atur-guru" class="modern-input w-full" onchange="window.muatAturPenugasan()"></select></div>
+                                <div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Sebagai</label><select id="sel-atur-role" class="modern-input w-full" onchange="window.muatAturPenugasan()"><option value="guru_mapel">Guru Mapel</option><option value="wali_kelas">Wali Kelas</option></select></div>
+                            </div>
+                            <div id="atur-pilihan" class="mb-4"></div>
+                            <button onclick="window.simpanAturPenugasan()" id="btn-simpan-atur" class="modern-btn bg-blue-600 whitespace-nowrap w-full sm:w-auto"><i class="fas fa-check mr-2"></i> Simpan Penugasan</button>
+                        </div>
                         <div id="panel-delegasi-kepsek" class="hidden modern-card border-t-4 border-t-purple-500 mt-8 shadow-md w-full max-w-full">
                             <h3 class="font-black mb-2 text-sm uppercase tracking-widest text-gray-900"><i class="fas fa-user-shield text-purple-500 mr-2"></i> Delegasi Admin Sekolah</h3>
                             <p class="text-[10px] text-gray-500 mb-5 font-bold">Pilih guru untuk diberi akses sebagai Admin / Operator yang membantu mengelola sekolah ini.</p>
@@ -1637,6 +1647,7 @@
                 htmlPenugasan += `<div class="p-6 rounded-2xl cursor-pointer transition-all flex flex-col justify-between w-full min-w-0 ${bgClass}" onclick="window.switchAssignment(${idx})"><div class="flex justify-between items-start mb-5"><i class="fas fa-building text-2xl shrink-0 ${isActive ? 'text-white' : 'text-gray-400'}"></i>${isActive ? '<span class="text-[9px] font-black bg-white text-black px-2 py-1 rounded uppercase tracking-widest shadow-sm shrink-0 ml-2">Aktif</span>' : ''}</div><div><h3 class="font-black text-lg mb-1 leading-tight break-words pr-2">${p.sekolah_nama}</h3><p class="font-bold text-[10px] uppercase tracking-widest ${isActive ? 'text-gray-300' : 'text-gray-500'} mb-4 border-b ${isActive?'border-gray-700':'border-gray-100'} pb-4 truncate pr-2">${rName}</p><p class="text-[10px] font-medium ${isActive ? 'text-gray-300' : 'text-gray-500'} mt-2"><i class="fas fa-info-circle mr-1"></i> Klik untuk beralih mode.</p>${isActive ? formKepsek : ''}</div></div>`;
             });
             container.innerHTML = htmlPenugasan;
+            const pnlAtur = document.getElementById('panel-atur-penugasan'); pnlAtur.classList.toggle('hidden', cRole !== 'admin_sekolah'); if (cRole === 'admin_sekolah') window.renderAturPenugasan();
 
             const pnlDelegasi = document.getElementById('panel-delegasi-kepsek'); const pnlReset = document.getElementById('panel-reset-tahunan');
             if(cRole === 'kepala_sekolah') {
@@ -1665,6 +1676,62 @@
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i>'; btn.disabled = true;
             try { await execWrite('schools', { logo_kop: url }, sekolahId); showToast("Logo Kop Sekolah Tersimpan!"); } 
             catch(e) { showToast("Gagal: " + e.message, true); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
+        };
+
+        // --- ADMIN SEKOLAH: ATUR MAPEL & WALI KELAS GURU (hanya sekolah sendiri) ---
+        const aturCtx = () => { const p = currentUser.data.penugasan[currentUser.activeAssignmentIndex]; return { sId: p.sekolah_id, sName: p.sekolah_nama, role: p.role }; };
+
+        window.renderAturPenugasan = () => {
+            const { sId } = aturCtx(); const sel = document.getElementById('sel-atur-guru'); const keep = sel.value;
+            let o = '<option value="">-- Pilih Guru --</option>';
+            DB.teachers.filter(t => t.penugasan && t.penugasan.some(p => p.sekolah_id === sId)).sort((a, b) => (a.nama || '').localeCompare(b.nama || '')).forEach(g => o += `<option value="${g.id}">${g.nama}</option>`);
+            sel.innerHTML = o; sel.value = keep; window.muatAturPenugasan();
+        };
+
+        window.muatAturPenugasan = () => {
+            const box = document.getElementById('atur-pilihan'); const tId = document.getElementById('sel-atur-guru').value; const role = document.getElementById('sel-atur-role').value;
+            if (!tId) { box.innerHTML = "<p class='text-xs text-gray-500'>Pilih guru terlebih dahulu.</p>"; return; }
+            const { sId } = aturCtx(); const t = DB.teachers.find(x => x.id === tId); const sch = DB.schools.find(x => x.id === sId);
+            const cur = (t && t.penugasan || []).find(p => p.sekolah_id === sId && p.role === role) || { kelas_ids: [], mapel_ids: [] };
+            let mp = DB.subjects; if (sch && sch.mapel_ids && sch.mapel_ids.length) mp = mp.filter(m => sch.mapel_ids.includes(m.id));
+            const item = (name, val, on, label) => `<label class="flex items-center gap-3 py-2 cursor-pointer px-2 rounded min-w-0 w-full"><input type="checkbox" name="${name}" value="${val}" ${on ? 'checked' : ''} class="accent-black w-5 h-5 shrink-0"> <span class="text-[11px] font-bold text-gray-800 uppercase break-words min-w-0">${label}</span></label>`;
+            const kls = DB.classes.filter(c => c.sekolah_id === sId);
+            const wrap = (title, inner) => `<div class="min-w-0"><p class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">${title}</p><div class="max-h-48 overflow-y-auto custom-scrollbar border border-gray-200 rounded-xl p-2">${inner}</div></div>`;
+            let h = '';
+            if (role === 'guru_mapel') h += wrap('Mata Pelajaran', mp.map(m => item('atur_mapel', m.id, (cur.mapel_ids || []).includes(m.id), m.nama)).join('') || "<span class='text-xs text-gray-500'>Belum ada mapel.</span>");
+            h += wrap(role === 'wali_kelas' ? 'Kelas yang Diwali' : 'Kelas yang Diajar', kls.map(c => item('atur_kelas', c.id, (cur.kelas_ids || []).includes(c.id), c.nama)).join('') || "<span class='text-xs text-gray-500'>Belum ada kelas.</span>");
+            box.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${h}</div>`;
+        };
+
+        window.simpanAturPenugasan = async () => {
+            if (!currentUser || currentUser.role !== 'guru') return;
+            const { sId, sName, role: myRole } = aturCtx(); if (myRole !== 'admin_sekolah') return showToast("Hanya Admin Sekolah yang boleh!", true);
+            const tId = document.getElementById('sel-atur-guru').value; const role = document.getElementById('sel-atur-role').value;
+            const t = DB.teachers.find(x => x.id === tId); if (!t) return showToast("Pilih guru terlebih dahulu!", true);
+            if (!(t.penugasan || []).some(p => p.sekolah_id === sId)) return showToast("Guru ini bukan bagian dari sekolah Anda!", true);
+            const sch = DB.schools.find(x => x.id === sId);
+            const kelas = Array.from(document.querySelectorAll('input[name="atur_kelas"]:checked')).map(c => c.value);
+            const mapel = role === 'guru_mapel' ? Array.from(document.querySelectorAll('input[name="atur_mapel"]:checked')).map(c => c.value) : ((sch && sch.mapel_ids) || []);
+            if (!kelas.every(k => DB.classes.some(c => c.id === k && c.sekolah_id === sId))) return showToast("Ada kelas yang bukan milik sekolah Anda!", true);
+            if (role === 'guru_mapel' && (kelas.length === 0) !== (mapel.length === 0)) return showToast("Guru Mapel: centang Mapel DAN Kelas, atau kosongkan keduanya untuk menghapus tugas.", true);
+            if (role === 'wali_kelas' && kelas.length) {
+                const bentrok = DB.teachers.find(o => o.id !== t.id && (o.penugasan || []).some(p => p.sekolah_id === sId && p.role === 'wali_kelas' && (p.kelas_ids || []).some(k => kelas.includes(k))));
+                if (bentrok) return showToast(`Kelas tersebut sudah memiliki wali kelas: ${bentrok.nama}.`, true);
+            }
+            const removing = kelas.length === 0;
+            let newP = (t.penugasan || []).filter(p => !(p.sekolah_id === sId && p.role === role));
+            if (!removing) newP.push({ sekolah_id: sId, sekolah_nama: sName, role: role, role_nama: role === 'wali_kelas' ? 'Wali Kelas' : 'Guru Mapel', mapel_ids: mapel, kelas_ids: kelas });
+            if (newP.length === 0) return showToast("Guru harus punya minimal satu tugas. Hubungi Admin Master untuk menghapus guru.", true);
+            if (removing && !confirm(`Hapus tugas ${role === 'wali_kelas' ? 'Wali Kelas' : 'Guru Mapel'} dari ${t.nama}?`)) return;
+            const btn = document.getElementById('btn-simpan-atur'); const oldTxt = btn.innerHTML; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Menyimpan...'; btn.disabled = true;
+            try {
+                await execWrite('teachers', { penugasan: newP }, t.id); await window.forceCacheUpdate('teachers');
+                if (t.id === currentUser.data.id) {
+                    const fresh = DB.teachers.find(x => x.id === t.id);
+                    if (fresh) { currentUser.data = fresh; const ix = fresh.penugasan.findIndex(p => p.sekolah_id === sId && p.role === 'admin_sekolah'); currentUser.activeAssignmentIndex = ix >= 0 ? ix : 0; updateHeaderUI(); renderNavigation(); }
+                }
+                showToast(removing ? "Tugas berhasil dihapus." : "Penugasan berhasil disimpan!"); window.renderPengaturanGuru();
+            } catch (e) { showToast("Gagal: " + e.message, true); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
         };
 
         window.simpanDelegasiAdmin = async () => {
