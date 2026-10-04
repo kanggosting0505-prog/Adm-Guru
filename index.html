@@ -145,6 +145,9 @@
         html.dark td { color: #e2e8f0 !important; }
         html.dark .shadow-sm { box-shadow: none !important; border: 1px solid #1e293b !important; }
         html.dark #logo-container-login, html.dark #logo-container-sidebar { background-color: #1e293b !important; border: 1px solid #334155 !important; }
+        /* Rapi: tinggi kartu dashboard seragam, nama profil tidak terpotong */
+        #dash-top-cards > .modern-card, #dash-kepsek-cards > .modern-card { min-height: 112px; }
+        #header-name, #header-role { white-space: normal; overflow-wrap: anywhere; }
         html.dark #toast { background-color: #1e293b !important; border-color: #334155 !important; }
         /* --- Perbaikan kontras mode gelap: kolom/kartu berwarna (rekap, peringatan, status) --- */
         html.dark .bg-green-50 { background-color: rgba(34,197,94,.16) !important; }
@@ -253,11 +256,11 @@
                         <button onclick="window.appLogout()" aria-label="Keluar Aplikasi" title="Keluar Aplikasi" class="w-11 h-11 shrink-0 rounded-full bg-red-50 border border-red-200 flex items-center justify-center text-red-600 hover:bg-red-100 transition shadow-sm">
                             <i class="fas fa-sign-out-alt"></i>
                         </button>
-                        <div class="bg-white border border-gray-200 rounded-2xl p-2 pr-4 md:pr-6 flex items-center gap-3 max-w-[200px] md:max-w-[300px] shadow-sm flex-1 md:flex-none">
+                        <div class="bg-white border border-gray-200 rounded-2xl p-2 pr-4 md:pr-6 flex items-center gap-3 w-full md:w-auto max-w-full md:max-w-[480px] shadow-sm min-w-0">
                             <div class="w-10 h-10 shrink-0 bg-[#0f172a] rounded-full flex items-center justify-center text-white font-black text-sm" id="header-avatar"></div>
-                            <div class="truncate flex-1 min-w-0">
-                                <h2 class="text-sm font-black leading-tight text-gray-900 truncate" id="header-name">User</h2>
-                                <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-0.5 truncate" id="header-role">Memuat...</p>
+                            <div class="flex-1 min-w-0">
+                                <h2 class="text-sm font-black leading-tight text-gray-900 break-words" id="header-name">User</h2>
+                                <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-0.5 leading-snug break-words" id="header-role">Memuat...</p>
                             </div>
                         </div>
                     </div>
@@ -273,7 +276,7 @@
                         </div>
 
                         <!-- Header Dashboard & Filter -->
-                        <div class="flex flex-col lg:flex-row lg:justify-between lg:items-end gap-6 mb-6 max-w-full">
+                        <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 mb-6 max-w-full">
                             <div>
                                 <h2 class="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Dashboard</h2>
                                 <p class="text-xs text-gray-500 mt-1">Ringkasan statistik akademik.</p>
@@ -307,8 +310,8 @@
                         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-full" id="dash-top-cards">
                             <div class="modern-card flex flex-col justify-center w-full min-w-0"><p class="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2 truncate">Siswa (Akses)</p><h3 class="text-3xl md:text-4xl font-black text-gray-900" id="stat-siswa"><i class="fas fa-circle-notch fa-spin text-gray-200 text-2xl"></i></h3></div>
                             <div class="modern-card flex flex-col justify-center w-full min-w-0"><p class="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2 truncate">Kelas Aktif</p><h3 class="text-3xl md:text-4xl font-black text-gray-900" id="stat-kelas"><i class="fas fa-circle-notch fa-spin text-gray-200 text-2xl"></i></h3></div>
-                            <div class="modern-card flex flex-col justify-center items-center relative py-4 w-full min-w-0"><p class="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2 w-full text-left truncate" id="lbl-chart-absen">Proporsi Kehadiran</p><div class="relative w-full h-[70px] md:h-[80px] flex justify-center"><canvas id="pieChart"></canvas></div></div>
-                            <div id="card-akses" class="modern-card flex flex-col justify-start relative overflow-hidden border-none shadow-sm bg-gray-50 w-full min-w-0"></div>
+                            <div class="modern-card flex flex-col justify-center items-center relative py-4 w-full min-w-0"><p class="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2 w-full text-left truncate" id="lbl-chart-absen">Proporsi Kehadiran</p><div class="relative w-full h-[70px] md:h-[80px] flex justify-center"><canvas id="pieChart"></canvas></div><p id="chart-absen-note" class="text-[10px] font-bold text-gray-500 mt-2 text-center"></p></div>
+                            <div id="card-akses" class="modern-card flex flex-col justify-center relative overflow-hidden border-none shadow-sm bg-gray-50 w-full min-w-0"></div>
                         </div>
                         
                         <div id="dash-kepsek-cards" class="hidden grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-full">
@@ -318,8 +321,8 @@
 
                         <!-- Main Content Dashboard -->
                         <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 max-w-full">
-                            <div class="xl:col-span-2 space-y-6 w-full min-w-0 max-w-full">
-                                <div class="modern-card h-[300px] md:h-[350px] flex flex-col w-full overflow-hidden min-w-0"><div class="flex justify-between items-center mb-6"><h3 class="font-black text-base md:text-lg text-gray-900">Statistik Kehadiran 7 Hari Terakhir</h3></div><div class="relative flex-1 w-full pb-2"><canvas id="mainChart"></canvas></div></div>
+                            <div class="xl:col-span-2 flex flex-col w-full min-w-0 max-w-full">
+                                <div class="modern-card min-h-[300px] md:min-h-[350px] flex-1 flex flex-col w-full overflow-hidden min-w-0"><div class="flex justify-between items-center mb-6"><h3 class="font-black text-base md:text-lg text-gray-900">Statistik Kehadiran 7 Hari Terakhir</h3></div><div class="relative flex-1 w-full pb-2"><canvas id="mainChart"></canvas></div></div>
                             </div>
                             <div class="space-y-6 w-full min-w-0 max-w-full">
                                 <div class="modern-card border-l-4 border-l-red-500 p-4 md:p-6 w-full min-w-0"><h3 class="font-black text-sm mb-4 text-gray-900 flex items-center justify-between gap-2 min-w-0"><span class="truncate pr-2"><i class="fas fa-user-times mr-2 text-red-500"></i> Data Tdk Hadir</span><span class="text-[9px] font-bold text-gray-500 uppercase bg-gray-100 px-2 py-1 rounded shrink-0" id="lbl-absen-tgl">TGL</span></h3><div class="space-y-2 max-h-[150px] overflow-y-auto pr-2 custom-scrollbar min-w-0" id="dash-list-absen"><div class="flex justify-center py-4"><i class="fas fa-circle-notch fa-spin text-gray-300"></i></div></div></div>
@@ -955,7 +958,7 @@
                 if(p) {
                     let rName = p.role==='wali_kelas'?'Wali Kelas':(p.role==='guru_mapel'?'Guru Mapel':(p.role==='admin_sekolah'?'Admin Sekolah':'Kepala Sekolah'));
                     document.getElementById('header-role').innerText = `${rName.toUpperCase()} - ${p.sekolah_nama.toUpperCase()}`;
-                    cardAkses.innerHTML = `<div class="absolute left-0 top-0 bottom-0 w-1 bg-yellow-400"></div><p class="text-[9px] font-bold uppercase tracking-widest mb-2 pl-2 text-gray-500 truncate">Akses Aktif</p><p class="text-xs font-black text-gray-900 pl-2 leading-tight">${rName}<br><span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest truncate max-w-full block">${p.sekolah_nama}</span></p>`;
+                    cardAkses.innerHTML = `<div class="absolute left-0 top-0 bottom-0 w-1 bg-yellow-400"></div><p class="text-[9px] font-bold uppercase tracking-widest mb-2 pl-2 text-gray-500 truncate">Akses Aktif</p><p class="text-xs font-black text-gray-900 pl-2 leading-tight">${rName}<br><span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest break-words max-w-full block">${p.sekolah_nama}</span></p>`;
                 } else {
                     document.getElementById('header-role').innerText = 'TIDAK ADA TUGAS AKTIF';
                 }
@@ -1075,7 +1078,7 @@
                     if(val.S === 0 && val.I === 0 && val.A === 0) return; // Abaikan jika hanya libur
                     let statStr = [];
                     if(val.S > 0) statStr.push(`${val.S} Skt`); if(val.I > 0) statStr.push(`${val.I} Izn`); if(val.A > 0) statStr.push(`${val.A} Alp`);
-                    absenHtml += `<div class="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm"><div class="flex flex-col truncate pr-2"><span class="font-bold text-[11px] text-gray-900 truncate">${val.nama}</span><span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest truncate">${val.kelas}</span></div><span class="text-[9px] px-3 py-1.5 rounded border border-red-200 font-black tracking-widest shrink-0 bg-red-50 text-red-700">${statStr.join(', ')}</span></div>`;
+                    absenHtml += `<div class="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm"><div class="flex flex-col min-w-0 pr-2"><span class="font-bold text-[11px] text-gray-900 break-words">${val.nama}</span><span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest break-words">${val.kelas}</span></div><span class="text-[9px] px-3 py-1.5 rounded border border-red-200 font-black tracking-widest shrink-0 bg-red-50 text-red-700">${statStr.join(', ')}</span></div>`;
                 });
             }
             document.getElementById('dash-list-absen').innerHTML = absenHtml || '<p class="text-[11px] text-gray-500 italic font-medium p-2">Semua hadir atau belum diinput.</p>';
@@ -1135,6 +1138,7 @@
         window.updatePieChart = (h, s, i, a, l) => {
             const ctx = document.getElementById('pieChart'); if(!ctx) return; if(pieChartInstance) pieChartInstance.destroy();
             const isDark = document.documentElement.classList.contains('dark'); const emptyColor = isDark ? '#1e293b' : '#e2e8f0';
+            { const _n = document.getElementById('chart-absen-note'); if (_n) { const _t = h+s+i+a; _n.innerText = (h===0&&s===0&&i===0&&a===0&&l===0) ? 'Belum ada data' : (_t>0 ? Math.round(h/_t*100)+'% hadir' : 'Libur'); } }
             if(h===0 && s===0 && i===0 && a===0 && l===0) { pieChartInstance = new Chart(ctx.getContext('2d'), { type: 'doughnut', data: { labels: ['Belum Ada Data'], datasets: [{ data: [1], backgroundColor: [emptyColor], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, cutout: '70%' } }); } 
             else { pieChartInstance = new Chart(ctx.getContext('2d'), { type: 'doughnut', data: { labels: ['Hadir', 'Sakit', 'Izin', 'Alpa', 'Libur'], datasets: [{ data: [h, s, i, a, l], backgroundColor: ['#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#cbd5e1'], borderWidth: 3, borderColor: isDark ? '#0f172a' : '#fff' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '70%' } }); }
         };
@@ -1230,7 +1234,7 @@
             let htmlTbl = '';
             gurus.forEach(g => {
                 const stat = dataLama[g.id] || 'Hadir';
-                htmlTbl += `<tr class="hover:bg-gray-50 transition"><td class="px-6 py-4 font-medium text-gray-500 w-32 text-left">${g.id_guru}</td><td class="px-6 py-4 border-l border-gray-100 font-bold text-gray-900 uppercase truncate max-w-[200px] w-full text-left">${g.nama}</td><td class="px-6 py-4 border-l border-gray-100 text-left whitespace-nowrap"><select aria-label="Status Hadir" class="sel-absguru modern-input !py-2 !px-3 text-[10px] font-bold uppercase tracking-widest w-full cursor-pointer bg-white" data-id="${g.id}"><option value="Hadir" ${stat==='Hadir'?'selected':''}>HADIR</option><option value="Sakit" ${stat==='Sakit'?'selected':''}>SAKIT</option><option value="Izin" ${stat==='Izin'?'selected':''}>IZIN</option><option value="Alpa" ${stat==='Alpa'?'selected':''}>ALPA</option><option value="Libur" ${stat==='Libur'?'selected':''}>LIBUR</option></select></td></tr>`;
+                htmlTbl += `<tr class="hover:bg-gray-50 transition"><td class="px-6 py-4 font-medium text-gray-500 w-32 text-left">${g.id_guru}</td><td class="px-6 py-4 border-l border-gray-100 font-bold text-gray-900 uppercase break-words min-w-[160px] w-full text-left">${g.nama}</td><td class="px-6 py-4 border-l border-gray-100 text-left whitespace-nowrap"><select aria-label="Status Hadir" class="sel-absguru modern-input !py-2 !px-3 text-[10px] font-bold uppercase tracking-widest w-full cursor-pointer bg-white" data-id="${g.id}"><option value="Hadir" ${stat==='Hadir'?'selected':''}>HADIR</option><option value="Sakit" ${stat==='Sakit'?'selected':''}>SAKIT</option><option value="Izin" ${stat==='Izin'?'selected':''}>IZIN</option><option value="Alpa" ${stat==='Alpa'?'selected':''}>ALPA</option><option value="Libur" ${stat==='Libur'?'selected':''}>LIBUR</option></select></td></tr>`;
             });
             document.getElementById('body-absensi-guru').innerHTML = htmlTbl || '<tr><td colspan="3" class="px-6 py-6 text-left pl-6 text-xs text-gray-400">Tidak ada guru terdaftar.</td></tr>';
         };
@@ -1322,7 +1326,7 @@
                     const clsStudents = DB.students.filter(s => s.kelas_id === cls.id);
                     const wk = DB.teachers.find(t => t.penugasan && t.penugasan.some(p => p.role === 'wali_kelas' && p.kelas_ids && p.kelas_ids.includes(cls.id)));
                     const wkName = wk ? wk.nama : 'Belum Ditentukan';
-                    html += `<div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm flex flex-col w-full min-w-0"><div class="bg-gray-50 p-4 border-b border-gray-200 flex justify-between items-center gap-2"><h4 class="font-black text-xs text-gray-900 uppercase truncate pr-2">${cls.nama}</h4><span class="text-[8px] bg-[#0f172a] text-white px-2 py-1.5 rounded font-bold uppercase tracking-widest shadow-sm shrink-0 truncate max-w-[120px]">Wali: ${wkName}</span></div><div class="p-0 flex-1 max-h-60 overflow-y-auto custom-scrollbar">`;
+                    html += `<div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm flex flex-col w-full min-w-0"><div class="bg-gray-50 p-4 border-b border-gray-200 flex flex-wrap justify-between items-center gap-2"><h4 class="font-black text-xs text-gray-900 uppercase break-words pr-2 min-w-0">${cls.nama}</h4><span class="text-[8px] bg-[#0f172a] text-white px-2 py-1.5 rounded font-bold uppercase tracking-widest shadow-sm max-w-full whitespace-normal break-words leading-snug">Wali: ${wkName}</span></div><div class="p-0 flex-1 max-h-60 overflow-y-auto custom-scrollbar">`;
                     if(clsStudents.length === 0) { html += `<p class="text-[10px] text-gray-400 italic p-5">Belum ada siswa.</p></div></div>`; return; }
                     html += `<table class="w-full text-left text-[10px] whitespace-nowrap table-auto"><thead class="bg-white border-b border-gray-100 text-gray-500 uppercase tracking-widest sticky top-0 z-10"><tr><th class="py-3 px-4 w-24 text-left">NIS</th><th class="py-3 px-4 w-full text-left">Nama Siswa</th><th class="py-3 px-4 text-right pr-6 whitespace-nowrap">Aksi</th></tr></thead><tbody class="divide-y divide-gray-100">`;
                     clsStudents.forEach(s => { html += `<tr class="hover:bg-gray-50 transition"><td class="py-3 px-4 font-medium text-gray-500 w-24 text-left">${s.nis}</td><td class="py-3 px-4 font-bold text-gray-800 uppercase w-full truncate max-w-[150px] text-left">${s.nama}</td><td class="py-1 px-4 text-right pr-6 whitespace-nowrap"><div class="flex justify-end gap-1"><div onclick="window.editSiswa('${s.id}')" aria-label="Edit Siswa" class="action-icon w-8 h-8"><i class="fas fa-edit text-[12px]"></i></div><div onclick="window.hapusItem('students','${s.id}')" aria-label="Hapus Siswa" class="action-icon w-8 h-8"><i class="fas fa-trash-alt text-[12px]"></i></div></div></td></tr>`; });
@@ -1767,7 +1771,7 @@
             tempPenugasan.forEach((p, i) => {
                 const k = DB.classes.filter(x=>p.kelas_ids?.includes(x.id)).map(x=>x.nama).join(', ') || '-';
                 let det = p.role==='wali_kelas'? `Kls: ${k} (Full Mapel)` : (p.role==='guru_mapel'? `Kls: ${k}` : 'Akses Penuh');
-                html += `<div class="p-4 border border-gray-200 rounded-xl flex justify-between items-center bg-white shadow-sm w-full min-w-0"><div class="truncate pr-4 min-w-0 flex-1"><p class="font-black text-[11px] text-gray-900 mb-1 uppercase truncate pr-2 flex items-center flex-wrap gap-1"><span>${p.sekolah_nama}</span> <span class="bg-gray-100 border border-gray-200 px-2 py-0.5 rounded text-[9px] font-bold tracking-widest shrink-0">${p.role_nama}</span></p><p class="text-[9px] text-gray-500 font-bold truncate pr-2">${det}</p></div><div onclick="window.hapusPenugasan(${i})" aria-label="Hapus Tugas" class="action-icon shrink-0"><i class="fas fa-trash-alt text-[14px]"></i></div></div>`;
+                html += `<div class="p-4 border border-gray-200 rounded-xl flex justify-between items-center bg-white shadow-sm w-full min-w-0"><div class="pr-4 min-w-0 flex-1 break-words"><p class="font-black text-[11px] text-gray-900 mb-1 uppercase pr-2 flex items-center flex-wrap gap-1"><span>${p.sekolah_nama}</span> <span class="bg-gray-100 border border-gray-200 px-2 py-0.5 rounded text-[9px] font-bold tracking-widest shrink-0">${p.role_nama}</span></p><p class="text-[9px] text-gray-500 font-bold break-words pr-2">${det}</p></div><div onclick="window.hapusPenugasan(${i})" aria-label="Hapus Tugas" class="action-icon shrink-0"><i class="fas fa-trash-alt text-[14px]"></i></div></div>`;
             });
             list.innerHTML = html;
         };
