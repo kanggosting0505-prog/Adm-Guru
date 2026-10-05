@@ -104,6 +104,11 @@
 
         /* --- DARK MODE SETTINGS --- */
         html.dark option { background-color: #0f172a; color: #f8fafc; }
+        .saved-note { display:flex; align-items:flex-start; gap:.5rem; width:100%; margin-top:.75rem; padding:.75rem 1rem; border-radius:.75rem; font-size:11px; font-weight:700; background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; }
+        .saved-note.warn { background:#fffbeb; border-color:#fde68a; color:#92400e; }
+        .saved-note.status { width:auto; margin:0; padding:.5rem .75rem; align-items:center; }
+        html.dark .saved-note { background:rgba(22,163,74,.12); border-color:rgba(74,222,128,.35); color:#86efac; }
+        html.dark .saved-note.warn { background:rgba(245,158,11,.12); border-color:rgba(251,191,36,.35); color:#fcd34d; }
         html.dark body, html.dark #app-blanket { background-color: #020617 !important; color: #f8fafc !important; }
         html.dark #fast-loader { background-color: #020617 !important; }
         html.dark #fast-loader h2 { color: #f8fafc !important; }
@@ -532,7 +537,7 @@
                             <p class="text-[10px] text-gray-500 mb-5 font-bold">Tambahkan guru ke sekolah Anda. Guru yang sudah punya akun di sekolah lain cukup dicari dan ditambahkan, jangan dibuatkan akun baru. Setelah ditambahkan, atur mapel dan kelasnya di panel "Atur Mapel &amp; Wali Kelas Guru" di bawah.</p>
                             <div class="mb-6">
                                 <label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Cari Guru yang Sudah Terdaftar (username login atau NIP, harus sama persis)</label>
-                                <div class="flex flex-col sm:flex-row gap-3"><input type="text" id="in-cari-guru" autocomplete="off" class="modern-input flex-1 min-w-0 w-full" placeholder="Cth: wawan" onkeydown="if(event.key==='Enter') window.cariGuru()"><button type="button" onclick="window.cariGuru()" class="modern-btn bg-indigo-600 whitespace-nowrap w-full sm:w-auto"><i class="fas fa-search mr-2"></i> Cari</button></div>
+                                <div class="flex flex-col sm:flex-row gap-3"><input type="text" id="in-cari-guru" autocomplete="off" class="modern-input flex-1 min-w-0 w-full" placeholder="Cth: wawan" onkeydown="if(event.key==='Enter') window.cariGuru()"><button type="button" onclick="window.cariGuru()" class="modern-btn bg-indigo-600 whitespace-nowrap w-full sm:w-auto"><i class="fas fa-search mr-2"></i> Cari</button><button type="button" onclick="window.batalCariGuru()" class="btn-outline whitespace-nowrap w-full sm:w-auto">Batal</button></div>
                                 <div id="hasil-cari-guru" class="mt-3 space-y-2"></div>
                             </div>
                             <div class="border-t border-gray-200 pt-5 mb-6">
@@ -937,7 +942,7 @@
         };
 
         window.navigate = (viewId) => {
-            currentActiveView = viewId;
+            currentActiveView = viewId; window.clearSavedNotes(); if (window.batalCariGuru) window.batalCariGuru();
             document.querySelectorAll('.view-section').forEach(el => { el.classList.add('hidden'); el.classList.remove('block'); });
             document.getElementById(`view-${viewId}`).classList.replace('hidden', 'block');
             document.querySelectorAll('.nav-icon').forEach(el => el.classList.remove('active'));
@@ -1074,9 +1079,9 @@
             u.value = isMaster ? auth.currentUser.email : (currentUser.data.id_guru || ''); u.readOnly = isMaster; u.classList.toggle('opacity-60', isMaster);
             document.getElementById('akun-info').innerText = isMaster ? 'Akun Admin Master memakai email sebagai username dan tidak bisa diubah. Anda hanya bisa mengganti kata sandi.' : 'Ubah username dan/atau kata sandi Anda. Kosongkan kata sandi baru jika tidak ingin menggantinya.';
             ['akun-pass-baru', 'akun-pass-konf', 'akun-pass-lama'].forEach(i => document.getElementById(i).value = '');
-            const m = document.getElementById('modal-akun'); m.classList.remove('hidden'); m.classList.add('flex');
+            const m = document.getElementById('modal-akun'); window.clearSavedNotes(m); m.classList.remove('hidden'); m.classList.add('flex');
         };
-        window.tutupAkunModal = () => { const m = document.getElementById('modal-akun'); m.classList.add('hidden'); m.classList.remove('flex'); };
+        window.tutupAkunModal = () => { const m = document.getElementById('modal-akun'); window.clearSavedNotes(m); m.classList.add('hidden'); m.classList.remove('flex'); };
         window.gantiSandiSendiri = window.bukaAkunModal;
 
         window.simpanAkun = async () => {
@@ -1104,8 +1109,10 @@
                     const fresh = DB.teachers.find(x => x.id === currentUser.data.id); if (fresh) currentUser.data = fresh; else currentUser.data.id_guru = uname;
                 }
                 if (ubahPass) await updatePassword(user, baru);
-                window.tutupAkunModal();
-                showToast(ubahUser && ubahPass ? "Username dan kata sandi berhasil diubah!" : (ubahUser ? "Username berhasil diubah!" : "Kata sandi berhasil diubah!"));
+                const pesan = ubahUser && ubahPass ? "Username dan kata sandi berhasil diubah!" : (ubahUser ? "Username berhasil diubah!" : "Kata sandi berhasil diubah!");
+                ['akun-pass-baru', 'akun-pass-konf', 'akun-pass-lama'].forEach(i => document.getElementById(i).value = '');
+                showToast(pesan);
+                window.showSavedNote('akun-info', 'Sudah tersimpan. ' + pesan.replace('berhasil diubah!', 'sudah diperbarui.') + (ubahUser ? ` Gunakan username "${uname}" saat login berikutnya.` : ' Gunakan kata sandi baru saat login berikutnya.'), { where: 'after', scope: document.getElementById('modal-akun') });
             } catch (e) {
                 const salah = e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password';
                 showToast(salah ? "Kata sandi saat ini salah!" : (e.code === 'auth/too-many-requests' ? "Terlalu banyak percobaan. Tunggu beberapa menit." : "Gagal: " + e.message), true);
@@ -1345,7 +1352,7 @@
             try {
                 await execWrite('schedules', { sekolah_id: sId, hari, guru_id: gId, kelas_id: kId, mapel_id: mId, jam_mulai: jMulai, jam_selesai: jSelesai });
                 document.getElementById('jdw-waktu').value = ''; document.getElementById('jdw-guru').value = ''; document.getElementById('jdw-kelas').value = ''; document.getElementById('jdw-mapel').value = '';
-                window.renderListJadwal(); showToast("Jadwal Tersimpan!");
+                window.renderListJadwal(); showToast("Jadwal Tersimpan!"); window.showSavedNote(noteCard('btn-simpan-jadwal'), `Jadwal hari ${hari}, pukul ${waktu} sudah tersimpan.`, { where: 'end' });
             } catch(e) { showToast(e.message, true); } finally { btn.disabled = false; btn.innerHTML = oldTxt; }
         };
 
@@ -1441,7 +1448,7 @@
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Memproses...'; btn.disabled = true;
             
             const dataToSave = {}; document.querySelectorAll('.sel-absguru').forEach(el => { dataToSave[el.dataset.id] = el.value; });
-            try { await execWrite('teacher_attendance', { tanggal: tgl, sekolah_id: sId, data: dataToSave }, `absguru_${sId}_${tgl}`); showToast("Absensi Guru Disimpan!"); window.updateDashboardData(); } 
+            try { await execWrite('teacher_attendance', { tanggal: tgl, sekolah_id: sId, data: dataToSave }, `absguru_${sId}_${tgl}`); showToast("Absensi Guru Disimpan!"); window.updateDashboardData(); noteStatus('btn-simpan-absguru'); } 
             catch(e) { showToast("Gagal: " + e.message, true); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
         };
 
@@ -1549,7 +1556,7 @@
             try { 
                 if(uid) { await execWrite('students', { nis, nama, sekolah_id: sid, kelas_id: kid }, uid); } 
                 else { await execWrite('students', { nis, nama, sekolah_id: sid, kelas_id: kid }); }
-                window.batalEditSiswa(); renderSiswa(); window.updateDashboardData(); showToast("Tersimpan!"); 
+                window.batalEditSiswa(); renderSiswa(); window.updateDashboardData(); showToast("Tersimpan!"); { const kn = (DB.classes.find(c => c.id === kid) || {}).nama || ''; window.showSavedNote(document.querySelector('#view-siswa > div:first-child'), `Sudah ${uid ? 'diperbarui' : 'tersimpan'}: ${nama} (NIS ${nis})${kn ? ', ' + kn : ''}.`, { where: 'after', scope: document.getElementById('view-siswa') }); } 
             } catch(e) { showToast(e.message, true); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
         };
 
@@ -1639,7 +1646,7 @@
                 if (sama) newId = sama.id; else { const ref = await addDoc(collection(db, 'subjects'), { nama: nama, sekolah_id: sId }); newId = ref.id; await window.forceCacheUpdate('subjects'); }
                 const cur = (sch.mapel_ids && sch.mapel_ids.length) ? sch.mapel_ids : schoolSubjects(sId).map(m => m.id);
                 await execWrite('schools', { mapel_ids: Array.from(new Set([...cur, newId])) }, sId);
-                inp.value = ''; window.renderMapelSekolah(); window.renderAturPenugasan(); showToast("Mapel ditambahkan!");
+                inp.value = ''; window.renderMapelSekolah(); window.renderAturPenugasan(); showToast("Mapel ditambahkan!"); window.showSavedNote(noteCard('btn-tambah-mapel-sekolah'), `Mapel "${nama}" sudah ditambahkan ke sekolah ini.`, { where: 'end' });
             } catch (e) { showToast("Gagal: " + e.message, true); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
         };
         window.hapusMapelSekolah = async (mId) => {
@@ -1647,7 +1654,7 @@
             const { sId } = aturCtx(); const next = schoolSubjects(sId).map(m => m.id).filter(id => id !== mId);
             if (next.length === 0) return showToast("Sekolah harus punya minimal satu mapel.", true);
             if (!confirm("Keluarkan mapel ini dari sekolah? Guru yang memakainya tidak lagi melihat mapel ini di absensi dan nilai.")) return;
-            try { await execWrite('schools', { mapel_ids: next }, sId); window.renderMapelSekolah(); window.renderAturPenugasan(); showToast("Mapel dikeluarkan."); } catch (e) { showToast("Gagal: " + e.message, true); }
+            try { await execWrite('schools', { mapel_ids: next }, sId); window.renderMapelSekolah(); window.renderAturPenugasan(); showToast("Mapel dikeluarkan."); window.showSavedNote('list-mapel-sekolah', 'Mapel sudah dikeluarkan dari sekolah ini.', { where: 'before' }); } catch (e) { showToast("Gagal: " + e.message, true); }
         };
 
         // --- MANAJEMEN ABSENSI SISWA ---
@@ -1688,7 +1695,7 @@
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Memproses...'; btn.disabled = true;
             
             const dataToSave = {}; document.querySelectorAll('.sel-absen').forEach(el => { dataToSave[el.dataset.nis] = el.value; });
-            try { if (awal) await execWrite('attendance', { tanggal: tgl, kelas_id: kId, data: dataToSave }, `abs_${kId}_${tgl}`); else await execWrite('attendance', { tanggal: tgl, kelas_id: kId, mapel_id: mId, data: dataToSave }, `abs_${kId}_${mId}_${tgl}`); showToast("Disimpan!"); window.updateDashboardData(); } 
+            try { if (awal) await execWrite('attendance', { tanggal: tgl, kelas_id: kId, data: dataToSave }, `abs_${kId}_${tgl}`); else await execWrite('attendance', { tanggal: tgl, kelas_id: kId, mapel_id: mId, data: dataToSave }, `abs_${kId}_${mId}_${tgl}`); showToast("Disimpan!"); window.updateDashboardData(); noteStatus('btn-simpan-absensi'); } 
             catch(e) { showToast("Gagal: " + e.message, true); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
         };
 
@@ -1756,7 +1763,7 @@
                 const n = row.dataset.nis; const t = row.querySelector('.val-t').value; const u = row.querySelector('.val-u').value; const a = row.querySelector('.val-a').value;
                 if(t || u || a) dataToSave[n] = { tugas: t, uts: u, uas: a };
             });
-            try { await execWrite('grades', { tanggal: tgl, kelas_id: kId, mapel_id: mId, data: dataToSave }, `nil_${kId}_${mId}_${tgl}`); showToast("Tersimpan!"); window.updateDashboardData(); } 
+            try { await execWrite('grades', { tanggal: tgl, kelas_id: kId, mapel_id: mId, data: dataToSave }, `nil_${kId}_${mId}_${tgl}`); showToast("Tersimpan!"); window.updateDashboardData(); noteStatus('btn-simpan-nilai'); } 
             catch(e) { showToast("Gagal: " + e.message, true); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
         };
 
@@ -1952,9 +1959,36 @@
             const url = document.getElementById(`kepsek-logo-${sekolahId}`).value.trim(); 
             const btn = document.getElementById(`btn-logo-${sekolahId}`); const oldTxt = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i>'; btn.disabled = true;
-            try { await execWrite('schools', { logo_kop: url }, sekolahId); showToast("Logo Kop Sekolah Tersimpan!"); } 
+            try { await execWrite('schools', { logo_kop: url }, sekolahId); showToast("Logo Kop Sekolah Tersimpan!"); window.showSavedNote(btn, 'Logo kop sudah tersimpan.', { where: 'after' }); } 
             catch(e) { showToast("Gagal: " + e.message, true); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
         };
+
+        // --- KETERANGAN "SUDAH TERSIMPAN" ---
+        const NOTE_EDIT_SEL = '.sel-absen, .sel-absguru, .val-t, .val-u, .val-a';
+        const jamSekarang = () => new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace(':', '.');
+        window.clearSavedNotes = (root) => { document.querySelectorAll('[data-saved-note]').forEach(n => { if (!root || root.contains(n)) n.remove(); }); };
+        // target: elemen acuan; where: 'after' | 'before' | 'end' | 'prepend'; mode: 'banner' (default) | 'status'
+        window.showSavedNote = (target, text, opts = {}) => {
+            const el = typeof target === 'string' ? document.getElementById(target) : target; if (!el) return;
+            const where = opts.where || 'after'; const mode = opts.mode || 'banner';
+            const scope = opts.scope || el.closest('.modern-card') || el.closest('.view-section') || el.parentElement || el;
+            document.querySelectorAll('[data-saved-note]').forEach(n => { if (n._scope === scope || scope.contains(n) || n.parentElement === el.parentElement) n.remove(); });
+            const n = document.createElement('div'); n.setAttribute('data-saved-note', '1'); n.setAttribute('role', 'status'); n._scope = scope; n._mode = mode; n._text = text;
+            n.className = 'saved-note' + (mode === 'status' ? ' status' : '');
+            n.innerHTML = `<i class="fas fa-check-circle mt-0.5 shrink-0"></i><span class="min-w-0 break-words"></span>`; n.querySelector('span').textContent = text;
+            if (where === 'before') el.parentElement.insertBefore(n, el); else if (where === 'after') el.parentElement.insertBefore(n, el.nextSibling);
+            else if (where === 'prepend') el.insertBefore(n, el.firstChild); else el.appendChild(n);
+        };
+        const onNoteEdit = (e) => {
+            document.querySelectorAll('[data-saved-note]').forEach(n => {
+                if (!n._scope || !n._scope.contains(e.target) || n.contains(e.target)) return;
+                if (n._mode === 'status' && e.target.matches(NOTE_EDIT_SEL)) { n.classList.add('warn'); n.querySelector('i').className = 'fas fa-exclamation-circle mt-0.5 shrink-0'; n.querySelector('span').textContent = 'Ada perubahan yang belum disimpan'; }
+                else n.remove();
+            });
+        };
+        document.addEventListener('input', onNoteEdit); document.addEventListener('change', onNoteEdit);
+        const noteCard = (id) => { const b = document.getElementById(id); return b ? (b.closest('.modern-card') || b.parentElement) : null; };
+        const noteStatus = (btnId) => window.showSavedNote(btnId, 'Tersimpan pukul ' + jamSekarang(), { where: 'before', mode: 'status', scope: document.getElementById(btnId).closest('.view-section') });
 
         // --- ADMIN SEKOLAH: KELOLA GURU SEKOLAH SENDIRI ---
         const escH = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1975,6 +2009,8 @@
             }).join('') || '<p class="text-xs text-gray-500">Belum ada guru di sekolah ini.</p>';
         };
 
+        window.batalCariGuru = () => { const i = document.getElementById('in-cari-guru'); const h = document.getElementById('hasil-cari-guru'); if (i) i.value = ''; if (h) h.innerHTML = ''; };
+
         window.cariGuru = async () => {
             if (!requireAdminSekolah()) return;
             const q = document.getElementById('in-cari-guru').value.trim().toLowerCase(); const box = document.getElementById('hasil-cari-guru');
@@ -1984,7 +2020,7 @@
             const { sId } = aturCtx();
             const hit = DB.teachers.filter(t => (t.id_guru || '').toLowerCase() === q || ((t.nip || '').trim().toLowerCase() === q));
             if (!hit.length) { box.innerHTML = '<p class="text-xs text-gray-500 font-bold">Tidak ditemukan. Pastikan username atau NIP ditulis persis sama. Jika memang belum punya akun, daftarkan sebagai guru baru di bawah.</p>'; return; }
-            box.innerHTML = hit.map(t => {
+            box.innerHTML = '<p class="text-[10px] font-bold text-gray-500">Hasil pencarian (tekan Batal untuk mengosongkan):</p>' + hit.map(t => {
                 const sudah = (t.penugasan || []).some(p => p.sekolah_id === sId);
                 const asal = Array.from(new Set((t.penugasan || []).map(p => sekolahNama(p.sekolah_id, p.sekolah_nama)).filter(Boolean))).join(', ') || 'Belum bertugas di sekolah mana pun';
                 return `<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-indigo-50 border border-indigo-200 p-4 rounded-xl"><div class="min-w-0"><p class="font-black text-[12px] uppercase text-gray-900 break-words">${escH(t.nama)}</p><p class="text-[10px] font-bold text-gray-500 break-words">Username: ${escH(t.id_guru)} &bull; Sekolah: ${escH(asal)}</p></div>${sudah ? '<span class="text-[10px] font-black uppercase tracking-widest text-green-700 shrink-0">Sudah terdaftar di sekolah ini</span>' : `<button type="button" onclick="window.tambahGuruKeSekolah('${t.id}')" class="modern-btn bg-indigo-600 whitespace-nowrap shrink-0"><i class="fas fa-plus mr-2"></i> Tambahkan ke sekolah ini</button>`}</div>`;
@@ -2000,7 +2036,7 @@
                 const newP = [...(fresh.penugasan || []), placeholderPenugasan(sId, sekolahNama(sId, sName))];
                 await setDoc(doc(db, 'teachers', tId), { penugasan: newP }, { merge: true }); await window.forceCacheUpdate('teachers');
                 document.getElementById('hasil-cari-guru').innerHTML = ''; document.getElementById('in-cari-guru').value = '';
-                window.renderKelolaGuru(); pilihDiAtur(tId); showToast("Guru ditambahkan. Atur mapel dan kelasnya di panel bawah.");
+                window.renderKelolaGuru(); pilihDiAtur(tId); showToast("Guru ditambahkan. Atur mapel dan kelasnya di panel bawah."); window.showSavedNote('hasil-cari-guru', `Sudah ditambahkan: ${fresh.nama}. Berikutnya atur mapel dan kelasnya di panel "Atur Mapel & Wali Kelas Guru".`, { where: 'before' });
             } catch (e) { showToast("Gagal: " + e.message, true); }
         };
 
@@ -2023,7 +2059,7 @@
                 await setDoc(doc(db, 'loginmap', id), { email: acct.email });
                 await window.forceCacheUpdate('teachers');
                 ['in-gb-nama', 'in-gb-nip', 'in-gb-user', 'in-gb-pass'].forEach(i => document.getElementById(i).value = '');
-                window.renderKelolaGuru(); pilihDiAtur(id); showToast("Guru baru didaftarkan. Atur mapel dan kelasnya di panel bawah.");
+                window.renderKelolaGuru(); pilihDiAtur(id); showToast("Guru baru didaftarkan. Atur mapel dan kelasnya di panel bawah."); window.showSavedNote('btn-tambah-guru-baru', `Sudah didaftarkan: ${nama} (username: ${id}). Berikutnya atur mapel dan kelasnya di panel "Atur Mapel & Wali Kelas Guru".`, { where: 'after' });
             } catch (e) { showToast("Gagal: " + (e.code === 'auth/email-already-in-use' ? "Akun dengan ID ini sudah ada, coba lagi." : e.message), true); }
             finally { btn.innerHTML = oldTxt; btn.disabled = false; }
         };
@@ -2038,7 +2074,7 @@
                 const newP = (fresh.penugasan || []).filter(p => p.sekolah_id !== sId);
                 if (!confirm(`Keluarkan ${fresh.nama} dari sekolah Anda?` + (newP.length ? '' : '\nAkunnya tetap ada tetapi tidak bisa login sampai ditugaskan lagi.'))) return;
                 await setDoc(doc(db, 'teachers', tId), { penugasan: newP }, { merge: true }); await window.forceCacheUpdate('teachers');
-                window.renderKelolaGuru(); window.renderAturPenugasan(); showToast(newP.length ? "Guru dikeluarkan dari sekolah ini." : "Guru dikeluarkan. Akunnya nonaktif; Admin Master bisa menghapusnya permanen.");
+                window.renderKelolaGuru(); window.renderAturPenugasan(); showToast(newP.length ? "Guru dikeluarkan dari sekolah ini." : "Guru dikeluarkan. Akunnya nonaktif; Admin Master bisa menghapusnya permanen."); window.showSavedNote('list-guru-sekolah', `${fresh.nama} sudah dikeluarkan dari sekolah ini.`, { where: 'before' });
             } catch (e) { showToast("Gagal: " + e.message, true); }
         };
 
@@ -2049,7 +2085,7 @@
                 const nama = prompt("Nama lengkap guru:", fresh.nama || ''); if (nama === null) return; const nip = prompt("NIP (kosongkan jika tidak ada):", fresh.nip || ''); if (nip === null) return;
                 if (!nama.trim()) return showToast("Nama tidak boleh kosong!", true);
                 await setDoc(doc(db, 'teachers', tId), { nama: nama.trim(), nip: nip.trim() }, { merge: true }); await window.forceCacheUpdate('teachers');
-                window.renderKelolaGuru(); window.renderAturPenugasan(); showToast("Data guru diperbarui.");
+                window.renderKelolaGuru(); window.renderAturPenugasan(); showToast("Data guru diperbarui."); window.showSavedNote('list-guru-sekolah', `Data ${nama.trim()} sudah tersimpan.`, { where: 'before' });
             } catch (e) { showToast("Gagal: " + e.message, true); }
         };
 
@@ -2121,7 +2157,12 @@
                     const fresh = DB.teachers.find(x => x.id === t.id);
                     if (fresh) { currentUser.data = fresh; const ix = fresh.penugasan.findIndex(p => p.sekolah_id === sId && p.role === 'admin_sekolah'); currentUser.activeAssignmentIndex = ix >= 0 ? ix : 0; updateHeaderUI(); renderNavigation(); }
                 }
-                showToast(removing ? "Tugas berhasil dihapus." : "Penugasan berhasil disimpan!"); window.renderPengaturanGuru();
+                const rNama = role === 'wali_kelas' ? 'Wali Kelas' : 'Guru Mapel';
+                const nmMapel = DB.subjects.filter(m => mapel.includes(m.id)).map(m => m.nama).join(', '); const nmKelas = DB.classes.filter(c => kelas.includes(c.id)).map(c => c.nama).join(', ');
+                const noteTxt = removing ? `Tugas ${rNama} untuk ${t.nama} sudah dihapus.` : `Sudah tersimpan: ${t.nama} sebagai ${rNama}. Mapel: ${nmMapel || '-'}. Kelas: ${nmKelas || '-'}.`;
+                showToast(removing ? "Tugas berhasil dihapus." : "Penugasan berhasil disimpan!");
+                document.getElementById('sel-atur-guru').value = ''; window.renderPengaturanGuru(); window.renderKelolaGuru();
+                window.showSavedNote(noteCard('btn-simpan-atur'), noteTxt, { where: 'end' });
             } catch (e) { showToast("Gagal: " + e.message, true); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
         };
 
@@ -2135,7 +2176,7 @@
                 if(t.penugasan && t.penugasan.some(p => p.sekolah_id === sId && p.role === 'admin_sekolah')) throw new Error("Guru ini sudah memiliki peran Admin Sekolah!");
                 
                 let newPenugasan = t.penugasan || []; newPenugasan.push({ sekolah_id: sId, sekolah_nama: sName, role: 'admin_sekolah', role_nama: 'Admin Sekolah', mapel_ids: [], kelas_ids: [] });
-                await execWrite('teachers', { penugasan: newPenugasan }, t.id); document.getElementById('sel-delegasi-guru').value = ''; showToast("Delegasi berhasil! Guru memiliki akses Admin Sekolah.");
+                await execWrite('teachers', { penugasan: newPenugasan }, t.id); document.getElementById('sel-delegasi-guru').value = ''; showToast("Delegasi berhasil! Guru memiliki akses Admin Sekolah."); window.showSavedNote(noteCard('btn-simpan-delegasi'), `Sudah didelegasikan: ${t.nama} kini menjadi Admin Sekolah.`, { where: 'end' });
             } catch(e) { showToast(e.message, true); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
         };
 
@@ -2266,7 +2307,7 @@
                     throw new Error("Guru ini belum punya akun aman. Isi kata sandi baru atau jalankan Migrasi di menu Guru.");
                 }
                 await execWrite('teachers', data, docId);
-                window.batalEditGuru(); showToast("Akun Guru Berhasil Disimpan!"); window.navigate('listguru'); renderListGuru();
+                window.batalEditGuru(); showToast("Akun Guru Berhasil Disimpan!"); window.navigate('listguru'); renderListGuru(); window.showSavedNote(document.getElementById('view-listguru'), `Sudah ${uid ? 'diperbarui' : 'didaftarkan'}: ${nama} (username: ${id}).`, { where: 'prepend', scope: document.getElementById('view-listguru') });
             } catch(e) { 
                 let m = e.message; if (e.code === 'auth/email-already-in-use') m = "Akun dengan ID ini sudah ada, coba lagi."; 
                 showToast("Error: " + m, true); 
@@ -2298,7 +2339,7 @@
             const val = document.getElementById(idInp).value.trim(); if(!val) return; 
             const btn = document.getElementById(btnId); const oldTxt = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>'; btn.disabled = true;
-            try { await execWrite(col, { nama: val }); document.getElementById(idInp).value = ''; renderMaster(); showToast("Berhasil Disimpan!"); } 
+            try { await execWrite(col, { nama: val }); document.getElementById(idInp).value = ''; renderMaster(); showToast("Berhasil Disimpan!"); window.showSavedNote(noteCard(btnId), `"${val}" sudah tersimpan.`, { where: 'end' }); } 
             catch(e) { showToast(e.message, true); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
         };
         
@@ -2313,7 +2354,7 @@
                 if (uid) { await execWrite('schools', dataSimpan, uid); } else { await execWrite('schools', dataSimpan); }
                 document.getElementById('in-sekolah-uid').value = ''; document.getElementById('in-jenjang-sekolah').value = ''; document.getElementById('in-nama-sekolah').value = ''; document.getElementById('in-logo-sekolah').value = ''; 
                 document.getElementById('btn-simpan-sekolah').innerText = 'Tambah'; document.querySelectorAll('input[name="chk_mapel_sekolah"]').forEach(cb => cb.checked = false);
-                renderMaster(); showToast("Sekolah Disimpan!"); 
+                renderMaster(); showToast("Sekolah Disimpan!"); window.showSavedNote(noteCard('btn-simpan-sekolah'), `Sekolah "${val}" (${jenjangLabel(jenjang)}) sudah ${uid ? 'diperbarui' : 'tersimpan'}.`, { where: 'end' }); 
             } catch(e) { showToast(e.message, true); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
         };
 
@@ -2329,7 +2370,7 @@
             const sid = document.getElementById('in-kelas-sekolah').value; const nama = document.getElementById('in-nama-kelas').value.trim(); if(!sid || !nama) return showToast("Pilih Sekolah & isi Nama Kelas!", true); 
             const btn = document.getElementById('btn-simpan-kelas'); const oldTxt = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>'; btn.disabled = true;
-            try { await execWrite('classes', { nama, sekolah_id: sid }); document.getElementById('in-nama-kelas').value = ''; renderMaster(); showToast("Kelas Dibuat!"); } 
+            try { await execWrite('classes', { nama, sekolah_id: sid }); document.getElementById('in-nama-kelas').value = ''; renderMaster(); showToast("Kelas Dibuat!"); window.showSavedNote(noteCard('btn-simpan-kelas'), `Kelas "${nama}" sudah dibuat.`, { where: 'end' }); } 
             catch(e) { showToast(e.message, true); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
         };
         
