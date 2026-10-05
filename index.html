@@ -104,11 +104,6 @@
 
         /* --- DARK MODE SETTINGS --- */
         html.dark option { background-color: #0f172a; color: #f8fafc; }
-        .dlg-icon { background:#eff6ff; color:#2563eb; }
-        .dlg-icon.danger { background:#fef2f2; color:#dc2626; }
-        html.dark .dlg-icon { background:rgba(37,99,235,.18); color:#93c5fd; }
-        html.dark .dlg-icon.danger { background:rgba(220,38,38,.18); color:#fca5a5; }
-        #modal-dialog .dlg-label { display:block; font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#6b7280; margin-bottom:.25rem; }
         .saved-note { display:flex; align-items:flex-start; gap:.5rem; width:100%; margin-top:.75rem; padding:.75rem 1rem; border-radius:.75rem; font-size:11px; font-weight:700; background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; }
         .saved-note.warn { background:#fffbeb; border-color:#fde68a; color:#92400e; }
         .saved-note.status { width:auto; margin:0; padding:.5rem .75rem; align-items:center; }
@@ -702,17 +697,6 @@
                     <div class="border-t border-gray-200 pt-4"><div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Kata Sandi Saat Ini (wajib)</label><div class="relative"><input type="password" id="akun-pass-lama" autocomplete="current-password" class="modern-input w-full pr-12" placeholder="Untuk konfirmasi perubahan"><div class="absolute inset-y-0 right-0 pt-[2px] pr-1 flex items-center"><button type="button" tabindex="-1" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500 hover:text-black transition cursor-pointer" onclick="window.togglePassword('akun-pass-lama', 'eye-akun-lama')"><i id="eye-akun-lama" class="fas fa-eye text-sm"></i></button></div></div></div></div>
                 </div>
                 <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-6"><button type="button" onclick="window.tutupAkunModal()" class="btn-outline w-full sm:w-auto">Batal</button><button type="button" onclick="window.simpanAkun()" id="btn-simpan-akun" class="modern-btn bg-[#0f172a] w-full sm:w-auto whitespace-nowrap"><i class="fas fa-save mr-2"></i> Simpan Perubahan</button></div>
-            </div>
-        </div>
-        <div id="modal-dialog" class="hidden fixed inset-0 z-[99995] items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-labelledby="dlg-title" aria-describedby="dlg-msg">
-            <div id="dlg-card" class="modern-card w-full max-w-md shadow-2xl border-t-4 border-t-[#0f172a] max-h-[92vh] overflow-y-auto">
-                <div class="flex items-start gap-3">
-                    <div id="dlg-icon" class="dlg-icon w-11 h-11 shrink-0 rounded-full flex items-center justify-center"><i id="dlg-icon-i" class="fas fa-question"></i></div>
-                    <div class="min-w-0 flex-1"><h3 id="dlg-title" class="font-black text-base text-gray-900 break-words"></h3><p id="dlg-msg" class="text-xs text-gray-600 font-medium mt-1 whitespace-pre-line break-words"></p></div>
-                </div>
-                <div id="dlg-fields" class="space-y-3 mt-4"></div>
-                <p id="dlg-error" class="hidden text-[11px] font-bold text-red-600 mt-3" role="alert"></p>
-                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-6"><button type="button" id="dlg-cancel" class="btn-outline w-full sm:w-auto"></button><button type="button" id="dlg-ok" class="modern-btn w-full sm:w-auto whitespace-nowrap"></button></div>
             </div>
         </div>
         <div id="toast" class="fixed top-6 right-6 z-[999999] transform transition-all duration-300 translate-x-[150%] opacity-0 bg-[#0f172a] text-white rounded-xl py-4 px-6 shadow-2xl flex items-center gap-4 font-bold border border-gray-700 max-w-[90vw]">
@@ -1452,9 +1436,9 @@
             link.download = `Rekap_absensi_guru_${bln}.${ext}`; document.body.appendChild(link); link.click(); document.body.removeChild(link);
         };
 
-        window.setSemuaLiburGuru = async () => {
+        window.setSemuaLiburGuru = () => {
             const dropdowns = document.querySelectorAll('.sel-absguru'); if(dropdowns.length === 0) return showToast("Tidak ada data guru!", true);
-            if(await askConfirm("Tandai SEMUA guru di daftar ini sebagai LIBUR?", { title: "Set Libur Semua Guru", okText: "Ya, Set Libur", icon: "fa-calendar-times" })) { dropdowns.forEach(sel => sel.value = 'Libur'); dropdowns[0].dispatchEvent(new Event('change', { bubbles: true })); showToast("Berhasil diset Libur. Jangan lupa Simpan!"); }
+            if(confirm("Tandai SEMUA guru di daftar ini sebagai LIBUR?")) { dropdowns.forEach(sel => sel.value = 'Libur'); showToast("Berhasil diset Libur. Jangan lupa Simpan!"); }
         };
 
         window.simpanAbsenGuru = async () => {
@@ -1669,7 +1653,7 @@
             if (getCurrentRole() !== 'admin_sekolah') return;
             const { sId } = aturCtx(); const next = schoolSubjects(sId).map(m => m.id).filter(id => id !== mId);
             if (next.length === 0) return showToast("Sekolah harus punya minimal satu mapel.", true);
-            if (!(await askConfirm("Guru yang memakai mapel ini tidak lagi melihatnya di absensi dan nilai.", { title: "Keluarkan Mapel dari Sekolah?", okText: "Ya, Keluarkan", danger: true }))) return;
+            if (!confirm("Keluarkan mapel ini dari sekolah? Guru yang memakainya tidak lagi melihat mapel ini di absensi dan nilai.")) return;
             try { await execWrite('schools', { mapel_ids: next }, sId); window.renderMapelSekolah(); window.renderAturPenugasan(); showToast("Mapel dikeluarkan."); window.showSavedNote('list-mapel-sekolah', 'Mapel sudah dikeluarkan dari sekolah ini.', { where: 'before' }); } catch (e) { showToast("Gagal: " + e.message, true); }
         };
 
@@ -1697,9 +1681,9 @@
             document.getElementById('body-absensi').innerHTML = htmlTbl || '<tr><td colspan="3" class="px-6 py-6 text-left pl-6 text-xs text-gray-400">Tidak ada siswa.</td></tr>';
         };
 
-        window.setSemuaLibur = async () => {
+        window.setSemuaLibur = () => {
             const dropdowns = document.querySelectorAll('.sel-absen'); if(dropdowns.length === 0) return showToast("Pilih kelas terlebih dahulu!", true);
-            if(await askConfirm("Tandai SEMUA siswa di tabel ini sebagai LIBUR?", { title: "Set Libur Semua Siswa", okText: "Ya, Set Libur", icon: "fa-calendar-times" })) { dropdowns.forEach(sel => sel.value = 'Libur'); dropdowns[0].dispatchEvent(new Event('change', { bubbles: true })); showToast("Berhasil. Klik tombol Simpan!"); }
+            if(confirm("Tandai SEMUA siswa di tabel ini sebagai LIBUR?")) { dropdowns.forEach(sel => sel.value = 'Libur'); showToast("Berhasil. Klik tombol Simpan!"); }
         };
 
         window.simpanAbsensi = async () => {
@@ -1979,57 +1963,6 @@
             catch(e) { showToast("Gagal: " + e.message, true); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
         };
 
-        // --- KOTAK DIALOG (pengganti confirm/prompt bawaan browser) ---
-        let dlgResolve = null, dlgMode = 'confirm', dlgPrevFocus = null, dlgFields = [];
-        const dlgEl = () => document.getElementById('modal-dialog');
-        const dlgClose = (val) => {
-            const m = dlgEl(); m.classList.add('hidden'); m.classList.remove('flex'); document.removeEventListener('keydown', dlgKey, true);
-            const r = dlgResolve; dlgResolve = null; if (dlgPrevFocus && dlgPrevFocus.focus) { try { dlgPrevFocus.focus(); } catch (_) {} }
-            if (r) r(val);
-        };
-        const dlgCancelVal = () => (dlgMode === 'form' ? null : false);
-        const dlgSubmit = () => {
-            if (dlgMode === 'confirm') return dlgClose(true);
-            const out = {}; const err = document.getElementById('dlg-error');
-            for (const f of dlgFields) {
-                const v = document.getElementById('dlg-f-' + f.name).value; out[f.name] = v.trim();
-                if (f.required && !v.trim()) { err.textContent = f.label + ' tidak boleh kosong!'; err.classList.remove('hidden'); document.getElementById('dlg-f-' + f.name).focus(); return; }
-            }
-            dlgClose(out);
-        };
-        function dlgKey(e) {
-            if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); return dlgClose(dlgCancelVal()); }
-            if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') { e.preventDefault(); return dlgSubmit(); }
-            if (e.key === 'Tab') {
-                const f = [...dlgEl().querySelectorAll('input, button')].filter(x => !x.disabled && x.offsetParent !== null); if (!f.length) return;
-                const first = f[0], last = f[f.length - 1];
-                if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); } else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-            }
-        }
-        const dlgOpen = (cfg) => new Promise((resolve) => {
-            if (dlgResolve) dlgClose(dlgCancelVal());
-            dlgResolve = resolve; dlgMode = cfg.mode; dlgFields = cfg.fields || []; dlgPrevFocus = document.activeElement;
-            document.getElementById('dlg-title').textContent = cfg.title; const msg = document.getElementById('dlg-msg'); msg.textContent = cfg.message || ''; msg.classList.toggle('hidden', !cfg.message);
-            const ic = document.getElementById('dlg-icon'); ic.classList.toggle('danger', !!cfg.danger); document.getElementById('dlg-icon-i').className = 'fas ' + (cfg.icon || (cfg.danger ? 'fa-exclamation-triangle' : (cfg.mode === 'form' ? 'fa-pen' : 'fa-question')));
-            document.getElementById('dlg-card').classList.toggle('border-t-red-600', !!cfg.danger); document.getElementById('dlg-card').classList.toggle('border-t-[#0f172a]', !cfg.danger);
-            const err = document.getElementById('dlg-error'); err.classList.add('hidden'); err.textContent = '';
-            const box = document.getElementById('dlg-fields'); box.innerHTML = '';
-            dlgFields.forEach(f => {
-                const w = document.createElement('div'); const l = document.createElement('label'); l.className = 'dlg-label'; l.htmlFor = 'dlg-f-' + f.name; l.textContent = f.label;
-                const i = document.createElement('input'); i.type = 'text'; i.id = 'dlg-f-' + f.name; i.className = 'modern-input w-full'; i.autocomplete = 'off'; i.value = f.value || ''; i.placeholder = f.placeholder || '';
-                w.appendChild(l); w.appendChild(i); box.appendChild(w);
-            });
-            const ok = document.getElementById('dlg-ok'); ok.textContent = cfg.okText; ok.className = 'modern-btn w-full sm:w-auto whitespace-nowrap ' + (cfg.danger ? 'bg-red-600' : 'bg-[#0f172a]');
-            const cn = document.getElementById('dlg-cancel'); cn.textContent = cfg.cancelText; ok.onclick = dlgSubmit; cn.onclick = () => dlgClose(dlgCancelVal());
-            const m = dlgEl(); m.onmousedown = (e) => { if (e.target === m) dlgClose(dlgCancelVal()); };
-            m.classList.remove('hidden'); m.classList.add('flex'); document.addEventListener('keydown', dlgKey, true);
-            setTimeout(() => { const f1 = document.getElementById('dlg-fields').querySelector('input'); if (f1) { f1.focus(); f1.select(); } else (cfg.danger ? cn : ok).focus(); }, 30);
-        });
-        // true jika dikonfirmasi, false jika dibatalkan
-        window.askConfirm = (message, o = {}) => dlgOpen({ mode: 'confirm', title: o.title || 'Konfirmasi', message, okText: o.okText || 'Ya, Lanjutkan', cancelText: o.cancelText || 'Batal', danger: !!o.danger, icon: o.icon });
-        // objek {nama_field: nilai} jika disimpan, null jika dibatalkan. fields: [{name,label,value,placeholder,required}]
-        window.askForm = (fields, o = {}) => dlgOpen({ mode: 'form', title: o.title || 'Isi Data', message: o.message, fields, okText: o.okText || 'Simpan Perubahan', cancelText: o.cancelText || 'Batal', danger: !!o.danger, icon: o.icon });
-
         // --- KETERANGAN "SUDAH TERSIMPAN" ---
         const NOTE_EDIT_SEL = '.sel-absen, .sel-absguru, .val-t, .val-u, .val-a';
         const jamSekarang = () => new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace(':', '.');
@@ -2099,7 +2032,7 @@
             try {
                 const fresh = await getFreshTeacher(tId); if (!fresh) return showToast("Data guru tidak ditemukan.", true);
                 if ((fresh.penugasan || []).some(p => p.sekolah_id === sId)) return showToast("Guru sudah terdaftar di sekolah ini.", true);
-                if (!(await askConfirm(`${fresh.nama} akan ditambahkan ke sekolah Anda. Mapel dan kelasnya diatur setelah ini.`, { title: "Tambahkan Guru?", okText: "Ya, Tambahkan", icon: "fa-user-plus" }))) return;
+                if (!confirm(`Tambahkan ${fresh.nama} ke sekolah Anda?`)) return;
                 const newP = [...(fresh.penugasan || []), placeholderPenugasan(sId, sekolahNama(sId, sName))];
                 await setDoc(doc(db, 'teachers', tId), { penugasan: newP }, { merge: true }); await window.forceCacheUpdate('teachers');
                 document.getElementById('hasil-cari-guru').innerHTML = ''; document.getElementById('in-cari-guru').value = '';
@@ -2115,7 +2048,7 @@
             if (id.includes('/') || id.includes('@') || id.includes(' ') || id.startsWith('__') || id === '.' || id === '..') return showToast("Username tidak boleh memakai spasi, / atau @ !", true);
             if (nip && nip !== '-' && DB.teachers.some(t => (t.nip || '').trim() === nip)) return showToast("NIP ini sudah terdaftar. Gunakan pencarian di atas untuk menambahkan guru tersebut.", true);
             if (DB.teachers.some(t => (t.id_guru || '').toLowerCase() === id)) return showToast("Username sudah dipakai. Jika itu guru yang sama, cari dan tambahkan lewat pencarian di atas.", true);
-            if (!(await askConfirm("Pastikan guru ini BELUM punya akun di sekolah lain (cari dulu dengan username atau NIP). Jika sudah punya, tambahkan lewat pencarian agar tidak ada akun ganda.", { title: "Buat Akun Guru Baru?", okText: "Ya, Buat Akun Baru", cancelText: "Cek Dulu", icon: "fa-user-plus" }))) return;
+            if (!confirm("Pastikan guru ini BELUM punya akun di sekolah lain (cari dulu dengan username/NIP). Lanjut membuat akun baru?")) return;
             const btn = document.getElementById('btn-tambah-guru-baru'); const oldTxt = btn.innerHTML; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Memproses...'; btn.disabled = true;
             try {
                 const [t1, l1] = await Promise.all([getDoc(doc(db, 'teachers', id)), getDoc(doc(db, 'loginmap', id))]);
@@ -2139,7 +2072,7 @@
                 if (!mine.length) return showToast("Guru ini bukan bagian dari sekolah Anda!", true);
                 if (mine.some(p => ['kepala_sekolah', 'admin_sekolah'].includes(p.role))) return showToast("Kepala/Admin Sekolah hanya bisa diubah oleh Admin Master.", true);
                 const newP = (fresh.penugasan || []).filter(p => p.sekolah_id !== sId);
-                if (!(await askConfirm(`${fresh.nama} akan dikeluarkan dari sekolah Anda.` + (newP.length ? '' : '\nAkunnya tetap ada tetapi tidak bisa login sampai ditugaskan lagi.'), { title: "Keluarkan Guru?", okText: "Ya, Keluarkan", danger: true, icon: "fa-user-minus" }))) return;
+                if (!confirm(`Keluarkan ${fresh.nama} dari sekolah Anda?` + (newP.length ? '' : '\nAkunnya tetap ada tetapi tidak bisa login sampai ditugaskan lagi.'))) return;
                 await setDoc(doc(db, 'teachers', tId), { penugasan: newP }, { merge: true }); await window.forceCacheUpdate('teachers');
                 window.renderKelolaGuru(); window.renderAturPenugasan(); showToast(newP.length ? "Guru dikeluarkan dari sekolah ini." : "Guru dikeluarkan. Akunnya nonaktif; Admin Master bisa menghapusnya permanen."); window.showSavedNote('list-guru-sekolah', `${fresh.nama} sudah dikeluarkan dari sekolah ini.`, { where: 'before' });
             } catch (e) { showToast("Gagal: " + e.message, true); }
@@ -2149,8 +2082,8 @@
             if (!requireAdminSekolah()) return; const { sId } = aturCtx();
             try {
                 const fresh = await getFreshTeacher(tId); if (!fresh || !(fresh.penugasan || []).some(p => p.sekolah_id === sId)) return showToast("Guru ini bukan bagian dari sekolah Anda!", true);
-                const form = await askForm([{ name: 'nama', label: 'Nama Lengkap', value: fresh.nama || '', placeholder: 'Nama beserta gelar', required: true }, { name: 'nip', label: 'NIP (opsional)', value: fresh.nip || '', placeholder: 'Kosongkan jika tidak ada' }], { title: 'Edit Data Guru', okText: 'Simpan Perubahan', icon: 'fa-user-edit' });
-                if (!form) return; const nama = form.nama; const nip = form.nip;
+                const nama = prompt("Nama lengkap guru:", fresh.nama || ''); if (nama === null) return; const nip = prompt("NIP (kosongkan jika tidak ada):", fresh.nip || ''); if (nip === null) return;
+                if (!nama.trim()) return showToast("Nama tidak boleh kosong!", true);
                 await setDoc(doc(db, 'teachers', tId), { nama: nama.trim(), nip: nip.trim() }, { merge: true }); await window.forceCacheUpdate('teachers');
                 window.renderKelolaGuru(); window.renderAturPenugasan(); showToast("Data guru diperbarui."); window.showSavedNote('list-guru-sekolah', `Data ${nama.trim()} sudah tersimpan.`, { where: 'before' });
             } catch (e) { showToast("Gagal: " + e.message, true); }
@@ -2216,7 +2149,7 @@
             if (!removing) newP = newP.filter(p => !(p.sekolah_id === sId && ['guru_mapel', 'wali_kelas'].includes(p.role) && !(p.kelas_ids || []).length && !(p.mapel_ids || []).length));
             if (!removing) newP.push({ sekolah_id: sId, sekolah_nama: sName, role: role, role_nama: role === 'wali_kelas' ? 'Wali Kelas' : 'Guru Mapel', mapel_ids: mapel, kelas_ids: kelas });
             if (newP.length === 0) return showToast("Guru harus punya minimal satu tugas. Hubungi Admin Master untuk menghapus guru.", true);
-            if (removing && !(await askConfirm(`Tugas ${role === 'wali_kelas' ? 'Wali Kelas' : 'Guru Mapel'} milik ${t.nama} akan dihapus dari sekolah ini.`, { title: "Hapus Tugas?", okText: "Ya, Hapus Tugas", danger: true }))) return;
+            if (removing && !confirm(`Hapus tugas ${role === 'wali_kelas' ? 'Wali Kelas' : 'Guru Mapel'} dari ${t.nama}?`)) return;
             const btn = document.getElementById('btn-simpan-atur'); const oldTxt = btn.innerHTML; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Menyimpan...'; btn.disabled = true;
             try {
                 await execWrite('teachers', { penugasan: newP }, t.id); await window.forceCacheUpdate('teachers');
@@ -2249,7 +2182,7 @@
 
         window.eksekusiResetTahunan = async () => {
             const bln = document.getElementById('in-reset-batas').value; if(!bln) return showToast("Pilih batas bulan terlebih dahulu!", true);
-            if(!(await askConfirm(`Anda yakin menghapus PERMANEN data Absensi & Nilai bulan ${bln} ke bawah?\nPastikan Anda sudah mengunduh rekap. Tindakan ini tidak bisa dibatalkan.`, { title: "Peringatan Bahaya!", okText: "Ya, Hapus Permanen", danger: true }))) return;
+            if(!confirm(`PERINGATAN BAHAYA!\nAnda yakin menghapus PERMANEN data Absensi & Nilai bulan ${bln} ke bawah?\nPastikan Anda sudah mengunduh rekap.`)) return;
 
             const btn = document.getElementById('btn-eksekusi-reset'); const oldTxt = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Memproses...'; btn.disabled = true;
@@ -2441,7 +2374,7 @@
             catch(e) { showToast(e.message, true); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
         };
         
-        window.hapusItem = async (col, id) => { if(await askConfirm("Data ini akan dihapus permanen dan tidak bisa dikembalikan.", { title: "Hapus Permanen?", okText: "Ya, Hapus", danger: true, icon: "fa-trash-alt" })) { try { if(col === 'teachers') { const tt = DB.teachers.find(x => x.id === id); if(tt) { if(tt.auth_uid) await deleteDoc(doc(db, 'accounts', tt.auth_uid)); if(tt.id_guru) await deleteDoc(doc(db, 'loginmap', tt.id_guru)); } } await execDelete(col, id); renderMaster(); renderListGuru(); renderSiswa(); if(col==='schedules')window.renderListJadwal(); showToast("Dihapus!"); } catch(e) { showToast(e.message, true); } } };
+        window.hapusItem = async (col, id) => { if(confirm("Hapus permanen?")) { try { if(col === 'teachers') { const tt = DB.teachers.find(x => x.id === id); if(tt) { if(tt.auth_uid) await deleteDoc(doc(db, 'accounts', tt.auth_uid)); if(tt.id_guru) await deleteDoc(doc(db, 'loginmap', tt.id_guru)); } } await execDelete(col, id); renderMaster(); renderListGuru(); renderSiswa(); if(col==='schedules')window.renderListJadwal(); showToast("Dihapus!"); } catch(e) { showToast(e.message, true); } } };
 
         const renderMaster = () => {
             const notifDoc = DB.settings.find(s => s.id === 'global_notif'); if(notifDoc && notifDoc.active) document.getElementById('in-reset-msg').value = notifDoc.message;
@@ -2493,7 +2426,7 @@
             if (!currentUser || currentUser.role !== 'admin') return showToast("Hanya Admin Master!", true);
             const targets = DB.teachers.filter(t => !t.auth_uid && t.id_guru);
             if (targets.length === 0) return showToast("Semua guru sudah dimigrasi.");
-            if (!(await askConfirm(`Setiap guru akan mendapat kata sandi BARU yang acak. Kata sandi lama tidak berlaku lagi.\nJangan tutup halaman sampai selesai.`, { title: `Migrasikan ${targets.length} Guru?`, okText: "Ya, Migrasikan", danger: true }))) return;
+            if (!confirm(`Migrasikan ${targets.length} guru?\n\nSetiap guru akan mendapat kata sandi BARU yang acak. Kata sandi lama tidak berlaku lagi.\nJangan tutup halaman sampai selesai.`)) return;
             const btn = document.getElementById('btn-migrasi'); btn.disabled = true;
             const hasil = []; let i = 0;
             for (const t of targets) {
