@@ -120,6 +120,13 @@
         html.dark .modern-btn:hover:not(:disabled) { background: #7dd3fc !important; }
         html.dark .btn-outline { border-color: #334155 !important; color: #cbd5e1 !important; }
         html.dark .btn-outline:hover:not(:disabled) { background: #1e293b !important; color: #fff !important; }
+
+        /* Tombol bahaya (dipakai modal konfirmasi) */
+        .btn-danger { background: #dc2626 !important; color: #fff !important; }
+        .btn-danger:hover:not(:disabled) { background: #b91c1c !important; box-shadow: 0 10px 25px -5px rgba(220, 38, 38, 0.4) !important; }
+        html.dark .btn-danger { background: #ef4444 !important; color: #fff !important; }
+        html.dark .btn-danger:hover:not(:disabled) { background: #dc2626 !important; }
+        .ui-dialog-backdrop { backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
         
         html.dark .floating-sidebar { background-color: #020617 !important; border-right: 1px solid #1e293b !important; border-radius: 0 1.5rem 1.5rem 0 !important; margin-left: 0 !important; height: 100vh !important; }
         html.dark #mobile-nav, html.dark nav.md\:hidden { background-color: #020617 !important; border-top-color: #1e293b !important; }
@@ -699,6 +706,43 @@
                 <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-6"><button type="button" onclick="window.tutupAkunModal()" class="btn-outline w-full sm:w-auto">Batal</button><button type="button" onclick="window.simpanAkun()" id="btn-simpan-akun" class="modern-btn bg-[#0f172a] w-full sm:w-auto whitespace-nowrap"><i class="fas fa-save mr-2"></i> Simpan Perubahan</button></div>
             </div>
         </div>
+<!-- Modal Konfirmasi (pengganti confirm bawaan browser) -->
+        <div id="ui-confirm" class="hidden fixed inset-0 z-[99995] items-center justify-center bg-black/60 ui-dialog-backdrop p-4" role="dialog" aria-modal="true" aria-labelledby="ui-confirm-title">
+            <div id="ui-confirm-card" class="modern-card w-full max-w-sm shadow-2xl border-t-4 border-t-[#0f172a] max-h-[92vh] overflow-y-auto animate-[fadeIn_0.2s_ease-out]">
+                <div class="flex items-start gap-4">
+                    <div id="ui-confirm-icon-wrap" class="w-11 h-11 shrink-0 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center text-lg"><i id="ui-confirm-icon" class="fas fa-circle-question"></i></div>
+                    <div class="min-w-0 flex-1">
+                        <h3 id="ui-confirm-title" class="font-black text-base text-gray-900 leading-snug break-words">Konfirmasi</h3>
+                        <p id="ui-confirm-msg" class="text-xs text-gray-500 font-semibold mt-1.5 leading-relaxed whitespace-pre-line break-words"></p>
+                    </div>
+                </div>
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-6">
+                    <button type="button" id="ui-confirm-cancel" class="btn-outline w-full sm:w-auto">Batal</button>
+                    <button type="button" id="ui-confirm-ok" class="modern-btn w-full sm:w-auto whitespace-nowrap">Ya, Lanjutkan</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Edit Data Guru (pengganti prompt bawaan browser) -->
+        <div id="ui-edit-guru" class="hidden fixed inset-0 z-[99995] items-center justify-center bg-black/60 ui-dialog-backdrop p-4" role="dialog" aria-modal="true" aria-labelledby="ui-edit-guru-title">
+            <div class="modern-card w-full max-w-md shadow-2xl border-t-4 border-t-[#0f172a] max-h-[92vh] overflow-y-auto animate-[fadeIn_0.2s_ease-out]">
+                <div class="flex justify-between items-start mb-1">
+                    <h3 id="ui-edit-guru-title" class="font-black text-base text-gray-900"><i class="fas fa-user-pen mr-2"></i> Edit Data Guru</h3>
+                    <button type="button" id="ui-edit-guru-x" aria-label="Tutup" class="w-9 h-9 rounded-full hover:bg-gray-100 text-gray-500 flex items-center justify-center"><i class="fas fa-times"></i></button>
+                </div>
+                <p class="text-[10px] text-gray-500 font-bold mb-5">Perbarui nama lengkap dan NIP guru. NIP boleh dikosongkan jika tidak ada.</p>
+                <div class="space-y-4">
+                    <div class="flex flex-col min-w-0 w-full"><label for="ui-edit-nama" class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Nama Lengkap</label><input type="text" id="ui-edit-nama" autocomplete="off" class="modern-input w-full" placeholder="Nama beserta gelar"></div>
+                    <div class="flex flex-col min-w-0 w-full"><label for="ui-edit-nip" class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">NIP (opsional)</label><input type="text" id="ui-edit-nip" autocomplete="off" class="modern-input w-full" placeholder="Kosongkan jika tidak ada"></div>
+                    <div id="ui-edit-err" class="hidden p-3 bg-red-50 text-red-600 text-[11px] rounded-xl font-bold border border-red-200"></div>
+                </div>
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-6">
+                    <button type="button" id="ui-edit-guru-cancel" class="btn-outline w-full sm:w-auto">Batal</button>
+                    <button type="button" id="ui-edit-guru-ok" class="modern-btn w-full sm:w-auto whitespace-nowrap"><i class="fas fa-save mr-2"></i> Simpan Perubahan</button>
+                </div>
+            </div>
+        </div>
+
         <div id="toast" class="fixed top-6 right-6 z-[999999] transform transition-all duration-300 translate-x-[150%] opacity-0 bg-[#0f172a] text-white rounded-xl py-4 px-6 shadow-2xl flex items-center gap-4 font-bold border border-gray-700 max-w-[90vw]">
             <i class="fas fa-info-circle text-white text-xl shrink-0" id="toast-icon"></i>
             <p class="text-sm tracking-wide break-words" id="toast-msg">Notifikasi</p>
@@ -913,6 +957,75 @@
             t.classList.remove('translate-x-[150%]', 'opacity-0');
             setTimeout(() => t.classList.add('translate-x-[150%]', 'opacity-0'), 3500);
         };
+
+        // ===== Dialog kustom (pengganti confirm/prompt bawaan browser) =====
+        let _uiConfirmDone = null;
+        const uiConfirm = (opt = {}) => new Promise(resolve => {
+            if (_uiConfirmDone) _uiConfirmDone(false);
+            const o = Object.assign({ title: 'Konfirmasi', message: '', confirmText: 'Ya, Lanjutkan', cancelText: 'Batal', type: 'info', icon: '' }, opt);
+            const m = document.getElementById('ui-confirm'), card = document.getElementById('ui-confirm-card');
+            const okB = document.getElementById('ui-confirm-ok'), noB = document.getElementById('ui-confirm-cancel');
+            const wrap = document.getElementById('ui-confirm-icon-wrap'), ico = document.getElementById('ui-confirm-icon');
+            const danger = o.type === 'danger', warn = o.type === 'warn';
+            const defIcon = danger ? 'fa-triangle-exclamation' : (warn ? 'fa-circle-exclamation' : 'fa-circle-question');
+            document.getElementById('ui-confirm-title').textContent = o.title;
+            document.getElementById('ui-confirm-msg').textContent = o.message;
+            document.getElementById('ui-confirm-msg').classList.toggle('hidden', !o.message);
+            ico.className = 'fas ' + (o.icon || defIcon);
+            wrap.className = 'w-11 h-11 shrink-0 rounded-full flex items-center justify-center text-lg ' + (danger ? 'bg-red-50 text-red-600' : (warn ? 'bg-amber-50 text-amber-800' : 'bg-blue-50 text-blue-700'));
+            card.classList.remove('border-t-[#0f172a]', 'border-t-red-500', 'border-t-amber-500');
+            card.classList.add(danger ? 'border-t-red-500' : (warn ? 'border-t-amber-500' : 'border-t-[#0f172a]'));
+            okB.textContent = o.confirmText; noB.textContent = o.cancelText;
+            okB.classList.toggle('btn-danger', danger);
+            const finish = (val) => {
+                _uiConfirmDone = null;
+                m.classList.add('hidden'); m.classList.remove('flex');
+                okB.onclick = noB.onclick = m.onclick = null; document.removeEventListener('keydown', onKey, true);
+                resolve(val);
+            };
+            const onKey = (e) => {
+                if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(false); }
+                else if (e.key === 'Enter' && !danger && document.activeElement !== noB) { e.preventDefault(); e.stopPropagation(); finish(true); }
+            };
+            _uiConfirmDone = finish;
+            okB.onclick = () => finish(true); noB.onclick = () => finish(false);
+            m.onclick = (e) => { if (e.target === m) finish(false); };
+            document.addEventListener('keydown', onKey, true);
+            m.classList.remove('hidden'); m.classList.add('flex');
+            setTimeout(() => (danger ? noB : okB).focus(), 30);
+        });
+
+        let _uiEditDone = null;
+        const uiEditGuru = (init = {}) => new Promise(resolve => {
+            if (_uiEditDone) _uiEditDone(null);
+            const m = document.getElementById('ui-edit-guru');
+            const inNama = document.getElementById('ui-edit-nama'), inNip = document.getElementById('ui-edit-nip');
+            const err = document.getElementById('ui-edit-err');
+            const okB = document.getElementById('ui-edit-guru-ok'), noB = document.getElementById('ui-edit-guru-cancel'), xB = document.getElementById('ui-edit-guru-x');
+            inNama.value = init.nama || ''; inNip.value = init.nip || ''; err.classList.add('hidden');
+            const finish = (val) => {
+                _uiEditDone = null;
+                m.classList.add('hidden'); m.classList.remove('flex');
+                okB.onclick = noB.onclick = xB.onclick = m.onclick = null; document.removeEventListener('keydown', onKey, true);
+                resolve(val);
+            };
+            const submit = () => {
+                const nama = inNama.value.trim();
+                if (!nama) { err.textContent = 'Nama tidak boleh kosong!'; err.classList.remove('hidden'); inNama.focus(); return; }
+                finish({ nama, nip: inNip.value.trim() });
+            };
+            const onKey = (e) => {
+                if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(null); }
+                else if (e.key === 'Enter' && (document.activeElement === inNama || document.activeElement === inNip)) { e.preventDefault(); submit(); }
+            };
+            _uiEditDone = finish;
+            okB.onclick = submit; noB.onclick = xB.onclick = () => finish(null);
+            m.onclick = (e) => { if (e.target === m) finish(null); };
+            document.addEventListener('keydown', onKey, true);
+            m.classList.remove('hidden'); m.classList.add('flex');
+            setTimeout(() => { inNama.focus(); inNama.select(); }, 30);
+        });
+        window.uiConfirm = uiConfirm; window.uiEditGuru = uiEditGuru;
 
         const MENU = [
             { id: 'dashboard', icon: 'fa-chart-pie', req: ['admin', 'kepala_sekolah', 'wali_kelas', 'guru_mapel', 'admin_sekolah'], label: 'Dashboard' },
@@ -1436,9 +1549,9 @@
             link.download = `Rekap_absensi_guru_${bln}.${ext}`; document.body.appendChild(link); link.click(); document.body.removeChild(link);
         };
 
-        window.setSemuaLiburGuru = () => {
+        window.setSemuaLiburGuru = async () => {
             const dropdowns = document.querySelectorAll('.sel-absguru'); if(dropdowns.length === 0) return showToast("Tidak ada data guru!", true);
-            if(confirm("Tandai SEMUA guru di daftar ini sebagai LIBUR?")) { dropdowns.forEach(sel => sel.value = 'Libur'); showToast("Berhasil diset Libur. Jangan lupa Simpan!"); }
+            if(await uiConfirm({ title: 'Tandai Semua Libur?', message: 'Semua guru di daftar ini akan ditandai sebagai LIBUR. Perubahan baru tersimpan setelah Anda menekan tombol Simpan.', confirmText: 'Ya, Tandai Libur', icon: 'fa-calendar-xmark' })) { dropdowns.forEach(sel => sel.value = 'Libur'); showToast("Berhasil diset Libur. Jangan lupa Simpan!"); }
         };
 
         window.simpanAbsenGuru = async () => {
@@ -1653,7 +1766,7 @@
             if (getCurrentRole() !== 'admin_sekolah') return;
             const { sId } = aturCtx(); const next = schoolSubjects(sId).map(m => m.id).filter(id => id !== mId);
             if (next.length === 0) return showToast("Sekolah harus punya minimal satu mapel.", true);
-            if (!confirm("Keluarkan mapel ini dari sekolah? Guru yang memakainya tidak lagi melihat mapel ini di absensi dan nilai.")) return;
+            if (!(await uiConfirm({ title: 'Keluarkan Mapel?', message: 'Mapel ini akan dikeluarkan dari sekolah. Guru yang memakainya tidak lagi melihat mapel ini di absensi dan nilai.', confirmText: 'Ya, Keluarkan', type: 'danger', icon: 'fa-book-bookmark' }))) return;
             try { await execWrite('schools', { mapel_ids: next }, sId); window.renderMapelSekolah(); window.renderAturPenugasan(); showToast("Mapel dikeluarkan."); window.showSavedNote('list-mapel-sekolah', 'Mapel sudah dikeluarkan dari sekolah ini.', { where: 'before' }); } catch (e) { showToast("Gagal: " + e.message, true); }
         };
 
@@ -1681,9 +1794,9 @@
             document.getElementById('body-absensi').innerHTML = htmlTbl || '<tr><td colspan="3" class="px-6 py-6 text-left pl-6 text-xs text-gray-400">Tidak ada siswa.</td></tr>';
         };
 
-        window.setSemuaLibur = () => {
+        window.setSemuaLibur = async () => {
             const dropdowns = document.querySelectorAll('.sel-absen'); if(dropdowns.length === 0) return showToast("Pilih kelas terlebih dahulu!", true);
-            if(confirm("Tandai SEMUA siswa di tabel ini sebagai LIBUR?")) { dropdowns.forEach(sel => sel.value = 'Libur'); showToast("Berhasil. Klik tombol Simpan!"); }
+            if(await uiConfirm({ title: 'Tandai Semua Libur?', message: 'Semua siswa di tabel ini akan ditandai sebagai LIBUR. Perubahan baru tersimpan setelah Anda menekan tombol Simpan.', confirmText: 'Ya, Tandai Libur', icon: 'fa-calendar-xmark' })) { dropdowns.forEach(sel => sel.value = 'Libur'); showToast("Berhasil. Klik tombol Simpan!"); }
         };
 
         window.simpanAbsensi = async () => {
@@ -2032,7 +2145,7 @@
             try {
                 const fresh = await getFreshTeacher(tId); if (!fresh) return showToast("Data guru tidak ditemukan.", true);
                 if ((fresh.penugasan || []).some(p => p.sekolah_id === sId)) return showToast("Guru sudah terdaftar di sekolah ini.", true);
-                if (!confirm(`Tambahkan ${fresh.nama} ke sekolah Anda?`)) return;
+                if (!(await uiConfirm({ title: 'Tambahkan Guru?', message: `Tambahkan ${fresh.nama} ke sekolah Anda?`, confirmText: 'Ya, Tambahkan', icon: 'fa-user-plus' }))) return;
                 const newP = [...(fresh.penugasan || []), placeholderPenugasan(sId, sekolahNama(sId, sName))];
                 await setDoc(doc(db, 'teachers', tId), { penugasan: newP }, { merge: true }); await window.forceCacheUpdate('teachers');
                 document.getElementById('hasil-cari-guru').innerHTML = ''; document.getElementById('in-cari-guru').value = '';
@@ -2048,7 +2161,7 @@
             if (id.includes('/') || id.includes('@') || id.includes(' ') || id.startsWith('__') || id === '.' || id === '..') return showToast("Username tidak boleh memakai spasi, / atau @ !", true);
             if (nip && nip !== '-' && DB.teachers.some(t => (t.nip || '').trim() === nip)) return showToast("NIP ini sudah terdaftar. Gunakan pencarian di atas untuk menambahkan guru tersebut.", true);
             if (DB.teachers.some(t => (t.id_guru || '').toLowerCase() === id)) return showToast("Username sudah dipakai. Jika itu guru yang sama, cari dan tambahkan lewat pencarian di atas.", true);
-            if (!confirm("Pastikan guru ini BELUM punya akun di sekolah lain (cari dulu dengan username/NIP). Lanjut membuat akun baru?")) return;
+            if (!(await uiConfirm({ title: 'Buat Akun Guru Baru?', message: 'Pastikan guru ini BELUM punya akun di sekolah lain (cari dulu dengan username/NIP). Lanjut membuat akun baru?', confirmText: 'Ya, Buat Akun', type: 'warn', icon: 'fa-user-plus' }))) return;
             const btn = document.getElementById('btn-tambah-guru-baru'); const oldTxt = btn.innerHTML; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Memproses...'; btn.disabled = true;
             try {
                 const [t1, l1] = await Promise.all([getDoc(doc(db, 'teachers', id)), getDoc(doc(db, 'loginmap', id))]);
@@ -2072,7 +2185,7 @@
                 if (!mine.length) return showToast("Guru ini bukan bagian dari sekolah Anda!", true);
                 if (mine.some(p => ['kepala_sekolah', 'admin_sekolah'].includes(p.role))) return showToast("Kepala/Admin Sekolah hanya bisa diubah oleh Admin Master.", true);
                 const newP = (fresh.penugasan || []).filter(p => p.sekolah_id !== sId);
-                if (!confirm(`Keluarkan ${fresh.nama} dari sekolah Anda?` + (newP.length ? '' : '\nAkunnya tetap ada tetapi tidak bisa login sampai ditugaskan lagi.'))) return;
+                if (!(await uiConfirm({ title: 'Keluarkan Guru?', message: `Keluarkan ${fresh.nama} dari sekolah Anda?` + (newP.length ? '' : '\nAkunnya tetap ada tetapi tidak bisa login sampai ditugaskan lagi.'), confirmText: 'Ya, Keluarkan', type: 'danger', icon: 'fa-user-minus' }))) return;
                 await setDoc(doc(db, 'teachers', tId), { penugasan: newP }, { merge: true }); await window.forceCacheUpdate('teachers');
                 window.renderKelolaGuru(); window.renderAturPenugasan(); showToast(newP.length ? "Guru dikeluarkan dari sekolah ini." : "Guru dikeluarkan. Akunnya nonaktif; Admin Master bisa menghapusnya permanen."); window.showSavedNote('list-guru-sekolah', `${fresh.nama} sudah dikeluarkan dari sekolah ini.`, { where: 'before' });
             } catch (e) { showToast("Gagal: " + e.message, true); }
@@ -2082,7 +2195,7 @@
             if (!requireAdminSekolah()) return; const { sId } = aturCtx();
             try {
                 const fresh = await getFreshTeacher(tId); if (!fresh || !(fresh.penugasan || []).some(p => p.sekolah_id === sId)) return showToast("Guru ini bukan bagian dari sekolah Anda!", true);
-                const nama = prompt("Nama lengkap guru:", fresh.nama || ''); if (nama === null) return; const nip = prompt("NIP (kosongkan jika tidak ada):", fresh.nip || ''); if (nip === null) return;
+                const hasil = await uiEditGuru({ nama: fresh.nama || '', nip: fresh.nip || '' }); if (!hasil) return; const nama = hasil.nama; const nip = hasil.nip;
                 if (!nama.trim()) return showToast("Nama tidak boleh kosong!", true);
                 await setDoc(doc(db, 'teachers', tId), { nama: nama.trim(), nip: nip.trim() }, { merge: true }); await window.forceCacheUpdate('teachers');
                 window.renderKelolaGuru(); window.renderAturPenugasan(); showToast("Data guru diperbarui."); window.showSavedNote('list-guru-sekolah', `Data ${nama.trim()} sudah tersimpan.`, { where: 'before' });
@@ -2149,7 +2262,7 @@
             if (!removing) newP = newP.filter(p => !(p.sekolah_id === sId && ['guru_mapel', 'wali_kelas'].includes(p.role) && !(p.kelas_ids || []).length && !(p.mapel_ids || []).length));
             if (!removing) newP.push({ sekolah_id: sId, sekolah_nama: sName, role: role, role_nama: role === 'wali_kelas' ? 'Wali Kelas' : 'Guru Mapel', mapel_ids: mapel, kelas_ids: kelas });
             if (newP.length === 0) return showToast("Guru harus punya minimal satu tugas. Hubungi Admin Master untuk menghapus guru.", true);
-            if (removing && !confirm(`Hapus tugas ${role === 'wali_kelas' ? 'Wali Kelas' : 'Guru Mapel'} dari ${t.nama}?`)) return;
+            if (removing && !(await uiConfirm({ title: 'Hapus Tugas?', message: `Hapus tugas ${role === 'wali_kelas' ? 'Wali Kelas' : 'Guru Mapel'} dari ${t.nama}?`, confirmText: 'Ya, Hapus Tugas', type: 'danger', icon: 'fa-trash-can' }))) return;
             const btn = document.getElementById('btn-simpan-atur'); const oldTxt = btn.innerHTML; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Menyimpan...'; btn.disabled = true;
             try {
                 await execWrite('teachers', { penugasan: newP }, t.id); await window.forceCacheUpdate('teachers');
@@ -2182,7 +2295,7 @@
 
         window.eksekusiResetTahunan = async () => {
             const bln = document.getElementById('in-reset-batas').value; if(!bln) return showToast("Pilih batas bulan terlebih dahulu!", true);
-            if(!confirm(`PERINGATAN BAHAYA!\nAnda yakin menghapus PERMANEN data Absensi & Nilai bulan ${bln} ke bawah?\nPastikan Anda sudah mengunduh rekap.`)) return;
+            if(!(await uiConfirm({ title: 'PERINGATAN BAHAYA!', message: `Anda yakin menghapus PERMANEN data Absensi & Nilai bulan ${bln} ke bawah?\nPastikan Anda sudah mengunduh rekap.`, confirmText: 'Ya, Hapus Permanen', type: 'danger' }))) return;
 
             const btn = document.getElementById('btn-eksekusi-reset'); const oldTxt = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Memproses...'; btn.disabled = true;
@@ -2374,7 +2487,7 @@
             catch(e) { showToast(e.message, true); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
         };
         
-        window.hapusItem = async (col, id) => { if(confirm("Hapus permanen?")) { try { if(col === 'teachers') { const tt = DB.teachers.find(x => x.id === id); if(tt) { if(tt.auth_uid) await deleteDoc(doc(db, 'accounts', tt.auth_uid)); if(tt.id_guru) await deleteDoc(doc(db, 'loginmap', tt.id_guru)); } } await execDelete(col, id); renderMaster(); renderListGuru(); renderSiswa(); if(col==='schedules')window.renderListJadwal(); showToast("Dihapus!"); } catch(e) { showToast(e.message, true); } } };
+        window.hapusItem = async (col, id) => { if(await uiConfirm({ title: 'Hapus Permanen?', message: 'Data yang dihapus tidak bisa dikembalikan.', confirmText: 'Ya, Hapus', type: 'danger', icon: 'fa-trash-can' })) { try { if(col === 'teachers') { const tt = DB.teachers.find(x => x.id === id); if(tt) { if(tt.auth_uid) await deleteDoc(doc(db, 'accounts', tt.auth_uid)); if(tt.id_guru) await deleteDoc(doc(db, 'loginmap', tt.id_guru)); } } await execDelete(col, id); renderMaster(); renderListGuru(); renderSiswa(); if(col==='schedules')window.renderListJadwal(); showToast("Dihapus!"); } catch(e) { showToast(e.message, true); } } };
 
         const renderMaster = () => {
             const notifDoc = DB.settings.find(s => s.id === 'global_notif'); if(notifDoc && notifDoc.active) document.getElementById('in-reset-msg').value = notifDoc.message;
@@ -2426,7 +2539,7 @@
             if (!currentUser || currentUser.role !== 'admin') return showToast("Hanya Admin Master!", true);
             const targets = DB.teachers.filter(t => !t.auth_uid && t.id_guru);
             if (targets.length === 0) return showToast("Semua guru sudah dimigrasi.");
-            if (!confirm(`Migrasikan ${targets.length} guru?\n\nSetiap guru akan mendapat kata sandi BARU yang acak. Kata sandi lama tidak berlaku lagi.\nJangan tutup halaman sampai selesai.`)) return;
+            if (!(await uiConfirm({ title: `Migrasikan ${targets.length} Guru?`, message: 'Setiap guru akan mendapat kata sandi BARU yang acak. Kata sandi lama tidak berlaku lagi.\nJangan tutup halaman sampai selesai.', confirmText: 'Ya, Migrasikan', type: 'warn', icon: 'fa-arrows-rotate' }))) return;
             const btn = document.getElementById('btn-migrasi'); btn.disabled = true;
             const hasil = []; let i = 0;
             for (const t of targets) {
