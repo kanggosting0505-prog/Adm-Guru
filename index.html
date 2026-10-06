@@ -22,7 +22,16 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config = { darkMode: 'class' };</script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Meter Kehadiran & Jadwal Dashboard */
+        .gauge-track { stroke: #e2e8f0; }
+        html.dark .gauge-track { stroke: #1e293b; }
+        .gauge-bar-track { background: #e2e8f0; }
+        html.dark .gauge-bar-track { background: #1e293b; }
+        @keyframes gaugeIn { from { stroke-dasharray: 0 100; } }
+        .gauge-arc { animation: gaugeIn 0.9s ease-out; }
+        .jdw-now { border-left: 4px solid #10b981 !important; }
+    </style>
 
     <!-- SUNTIKAN ANTI-BLOGGER ABSOLUT (MEMBUNUH TAMPILAN ORANYE) -->
     <style>
@@ -322,7 +331,7 @@
                         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-full" id="dash-top-cards">
                             <div class="modern-card flex flex-col justify-center w-full min-w-0"><p class="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2 truncate">Siswa (Akses)</p><h3 class="text-3xl md:text-4xl font-black text-gray-900" id="stat-siswa"><i class="fas fa-circle-notch fa-spin text-gray-200 text-2xl"></i></h3></div>
                             <div class="modern-card flex flex-col justify-center w-full min-w-0"><p class="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2 truncate">Kelas Aktif</p><h3 class="text-3xl md:text-4xl font-black text-gray-900" id="stat-kelas"><i class="fas fa-circle-notch fa-spin text-gray-200 text-2xl"></i></h3></div>
-                            <div class="modern-card flex flex-col justify-center items-center relative py-4 w-full min-w-0"><p class="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2 w-full text-left truncate" id="lbl-chart-absen">Proporsi Kehadiran</p><div class="relative w-full h-[70px] md:h-[80px] flex justify-center"><canvas id="pieChart"></canvas></div><p id="chart-absen-note" class="text-[10px] font-bold text-gray-500 mt-2 text-center"></p></div>
+                            <div class="modern-card flex flex-col relative py-4 w-full min-w-0"><p class="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2 w-full text-left truncate" id="lbl-chart-absen">Proporsi Kehadiran</p><div id="absen-gauge" class="w-full min-w-0"></div></div>
                             <div id="card-akses" class="modern-card flex flex-col justify-center relative overflow-hidden border-none shadow-sm bg-gray-50 w-full min-w-0"></div>
                         </div>
                         
@@ -334,7 +343,7 @@
                         <!-- Main Content Dashboard -->
                         <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 max-w-full">
                             <div class="xl:col-span-2 flex flex-col w-full min-w-0 max-w-full">
-                                <div class="modern-card min-h-[300px] md:min-h-[350px] flex-1 flex flex-col w-full overflow-hidden min-w-0"><div class="flex justify-between items-center mb-6"><h3 class="font-black text-base md:text-lg text-gray-900">Statistik Kehadiran 7 Hari Terakhir</h3></div><div class="relative flex-1 w-full pb-2"><canvas id="mainChart"></canvas></div></div>
+                                <div class="modern-card min-h-[300px] md:min-h-[350px] flex-1 flex flex-col w-full overflow-hidden min-w-0"><div class="flex justify-between items-start gap-3 mb-4"><div class="min-w-0"><h3 class="font-black text-base md:text-lg text-gray-900">Jadwal Mengajar</h3><p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1 truncate" id="lbl-dash-jadwal-sekolah"></p></div><i class="fas fa-calendar-day text-gray-400 text-lg shrink-0 mt-1"></i></div><div class="flex gap-2 overflow-x-auto pb-2 custom-scrollbar w-full max-w-full" id="dash-jadwal-tabs"></div><div class="flex-1 mt-3 space-y-2 overflow-y-auto max-h-[440px] pr-1 custom-scrollbar min-w-0" id="dash-jadwal-list"></div></div>
                             </div>
                             <div class="space-y-6 w-full min-w-0 max-w-full">
                                 <div class="modern-card border-l-4 border-l-red-500 p-4 md:p-6 w-full min-w-0"><h3 class="font-black text-sm mb-4 text-gray-900 flex items-center justify-between gap-2 min-w-0"><span class="truncate pr-2"><i class="fas fa-user-times mr-2 text-red-500"></i> Data Tdk Hadir</span><span class="text-[9px] font-bold text-gray-500 uppercase bg-gray-100 px-2 py-1 rounded shrink-0" id="lbl-absen-tgl">TGL</span></h3><div class="space-y-2 max-h-[150px] overflow-y-auto pr-2 custom-scrollbar min-w-0" id="dash-list-absen"><div class="flex justify-center py-4"><i class="fas fa-circle-notch fa-spin text-gray-300"></i></div></div></div>
@@ -804,8 +813,6 @@
             if (oldIdGuru && oldIdGuru !== idGuru) { try { await deleteDoc(doc(db, 'loginmap', oldIdGuru)); } catch(e) {} }
             return { auth_uid: acct.uid, auth_email: acct.email, password: deleteField() };
         };
-        let chartInstance = null; 
-        let pieChartInstance = null; 
         let DB = { schools: [], subjects: [], classes: [], teachers: [], students: [], attendance: [], grades: [], settings: [], teacher_attendance: [], schedules: [] }; 
         let tempPenugasan = [];
         let currentActiveView = 'dashboard';
@@ -824,10 +831,6 @@
             const btn = document.getElementById('btn-dark-mode');
             if(btn) btn.innerHTML = !isCurrentlyDark ? '<i class="fas fa-sun text-yellow-400"></i>' : '<i class="fas fa-moon text-gray-600"></i>';
 
-            requestAnimationFrame(() => {
-                if (chartInstance) window.updateMainChart();
-                if (pieChartInstance) window.updateDashboardData();
-            });
         };
 
         window.togglePassword = (inputId, iconId) => {
@@ -1354,9 +1357,8 @@
 
             window.renderGuruTdkHadir(modeView, targetPrefix);
 
-            requestAnimationFrame(() => {
-                if (typeof Chart !== 'undefined') { window.updateMainChart(); window.updatePieChart(countH, countS, countI, countA, countL); }
-            });
+            window.updatePieChart(countH, countS, countI, countA, countL);
+            window.renderJadwalDash();
         };
 
         window.renderGuruTdkHadir = (modeView, prefix) => {
@@ -1382,23 +1384,77 @@
             document.getElementById('dash-list-guru-absen').innerHTML = html || `<p class="text-[11px] text-gray-500 italic font-medium p-2">${adaData ? 'Semua guru hadir.' : 'Belum ada absensi guru yang diinput.'}</p>`;
         };
 
+        // --- PROPORSI KEHADIRAN (METER SETENGAH LINGKARAN, SVG MURNI) ---
         window.updatePieChart = (h, s, i, a, l) => {
-            const ctx = document.getElementById('pieChart'); if(!ctx) return; if(pieChartInstance) pieChartInstance.destroy();
-            const isDark = document.documentElement.classList.contains('dark'); const emptyColor = isDark ? '#1e293b' : '#e2e8f0';
-            { const _n = document.getElementById('chart-absen-note'); if (_n) { const _t = h+s+i+a; _n.innerText = (h===0&&s===0&&i===0&&a===0&&l===0) ? 'Belum ada data' : (_t>0 ? Math.round(h/_t*100)+'% hadir' : 'Libur'); } }
-            if(h===0 && s===0 && i===0 && a===0 && l===0) { pieChartInstance = new Chart(ctx.getContext('2d'), { type: 'doughnut', data: { labels: ['Belum Ada Data'], datasets: [{ data: [1], backgroundColor: [emptyColor], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, cutout: '70%' } }); } 
-            else { pieChartInstance = new Chart(ctx.getContext('2d'), { type: 'doughnut', data: { labels: ['Hadir', 'Sakit', 'Izin', 'Alpa', 'Libur'], datasets: [{ data: [h, s, i, a, l], backgroundColor: ['#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#cbd5e1'], borderWidth: 3, borderColor: isDark ? '#0f172a' : '#fff' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '70%' } }); }
+            const box = document.getElementById('absen-gauge'); if (!box) return;
+            const tot = h + s + i + a;
+            const pct = tot > 0 ? Math.round(h / tot * 100) : 0;
+            const color = pct >= 90 ? '#10b981' : (pct >= 75 ? '#f59e0b' : '#ef4444');
+            const noData = (tot + l) === 0;
+            const note = noData ? 'Belum ada data' : (tot > 0 ? (pct >= 90 ? 'Sangat baik' : (pct >= 75 ? 'Cukup baik' : 'Perlu perhatian')) : 'Libur');
+            const big = tot > 0 ? `${pct}<span class="text-sm font-black text-gray-500 ml-0.5">%</span>` : `<span class="text-gray-400">&ndash;</span>`;
+            const animate = window._gaugeLastPct !== pct; window._gaugeLastPct = pct;
+            const arcD = 'M 20 100 A 80 80 0 0 1 180 100';
+            const arc = (tot > 0 && pct > 0) ? `<path class="${animate ? 'gauge-arc' : ''}" d="${arcD}" pathLength="100" fill="none" stroke="${color}" stroke-width="16" stroke-linecap="round" style="stroke-dasharray:${pct} 100"/>` : '';
+            const segs = [['Hadir', h, '#10b981'], ['Sakit', s, '#f59e0b'], ['Izin', i, '#3b82f6'], ['Alpa', a, '#ef4444']];
+            const bar = tot > 0 ? segs.filter(x => x[1] > 0).map(x => `<div class="h-full rounded-full" style="flex:${x[1]};background:${x[2]}" title="${x[0]}: ${x[1]}"></div>`).join('') : '';
+            const legend = segs.map(x => `<div class="flex items-center justify-between gap-2 min-w-0"><span class="flex items-center gap-1.5 min-w-0"><span class="w-2 h-2 rounded-full shrink-0" style="background:${x[2]}"></span><span class="text-[10px] font-bold text-gray-500 truncate">${x[0]}</span></span><span class="text-[11px] font-black text-gray-900">${x[1]}</span></div>`).join('');
+            box.innerHTML = `
+                <div class="relative w-full max-w-[190px] mx-auto">
+                    <svg viewBox="0 0 200 112" class="w-full block" role="img" aria-label="Tingkat kehadiran ${tot > 0 ? pct + ' persen' : 'belum ada data'}">
+                        <path class="gauge-track" d="${arcD}" fill="none" stroke-width="16" stroke-linecap="round"/>
+                        ${arc}
+                    </svg>
+                    <div class="absolute inset-x-0 bottom-0 text-center leading-none"><div class="text-3xl md:text-4xl font-black text-gray-900 leading-none">${big}</div></div>
+                </div>
+                <p class="text-[10px] font-bold text-center mt-1 mb-3" style="color:${tot > 0 ? color : '#94a3b8'}">${note}</p>
+                <div class="flex gap-[3px] h-2 w-full rounded-full overflow-hidden gauge-bar-track">${bar}</div>
+                <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-3">${legend}</div>
+                ${l > 0 ? `<p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-2">Libur: ${l}</p>` : ''}`;
         };
 
-        window.updateMainChart = () => {
-            const ctx = document.getElementById('mainChart'); if(!ctx) return; if(chartInstance) chartInstance.destroy();
-            const isDark = document.documentElement.classList.contains('dark');
-            const lineColor = isDark ? '#38bdf8' : '#0f172a'; const tickColor = isDark ? '#94a3b8' : '#64748b'; const gridColor = isDark ? '#1e293b' : '#e2e8f0';
+        // --- JADWAL MENGAJAR DI DASHBOARD ---
+        window.setTabJadwalDash = (hari) => { document.getElementById('dash-jadwal-tabs').dataset.day = hari; window.renderJadwalDash(); };
+        window.renderJadwalDash = () => {
+            const tabs = document.getElementById('dash-jadwal-tabs'), list = document.getElementById('dash-jadwal-list'), lbl = document.getElementById('lbl-dash-jadwal-sekolah');
+            if (!tabs || !list || !currentUser) return;
+            const cRole = getCurrentRole();
+            const haris = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const todayName = haris[new Date().getDay() - 1] || null;
+            let activeDay = tabs.dataset.day || todayName || 'Senin'; if (!haris.includes(activeDay)) activeDay = 'Senin';
+            tabs.dataset.day = activeDay;
+            tabs.innerHTML = haris.map(h => `<button onclick="window.setTabJadwalDash('${h}')" aria-label="Jadwal Hari ${h}" class="px-4 py-2 min-h-[40px] rounded-xl text-[11px] font-bold whitespace-nowrap transition flex items-center ${activeDay === h ? 'bg-[#0f172a] text-white shadow-md dark:bg-sky-400 dark:text-slate-900' : 'bg-white text-gray-500 hover:bg-gray-100 border border-gray-200'}">${h}${h === todayName ? '<span class="ml-1.5 w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>' : ''}</button>`).join('');
 
-            let gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400); 
-            gradient.addColorStop(0, isDark ? 'rgba(56, 189, 248, 0.2)' : 'rgba(15, 23, 42, 0.2)'); gradient.addColorStop(1, isDark ? 'rgba(56, 189, 248, 0)' : 'rgba(15, 23, 42, 0)');
-            
-            chartInstance = new Chart(ctx.getContext('2d'), { type: 'line', data: { labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'], datasets: [{ label: 'Hadir (%)', data: [85, 92, 78, 95, 88, 70], borderColor: lineColor, backgroundColor: gradient, borderWidth: 3, pointBackgroundColor: isDark ? '#0f172a' : '#fff', pointBorderColor: lineColor, pointBorderWidth: 3, pointRadius: 5, fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100, ticks: { color: tickColor }, grid: { color: gridColor } }, x: { grid: { display: false }, ticks: { color: tickColor } } } } });
+            const sId = cRole === 'admin' ? document.getElementById('dash-filter-sekolah').value : ctxSid();
+            if (!sId || sId === 'ALL') {
+                lbl.innerText = 'Semua Sekolah';
+                list.innerHTML = `<div class="flex flex-col items-center justify-center text-center py-10 text-gray-400"><i class="fas fa-school text-3xl mb-3"></i><p class="text-xs font-bold italic">Pilih sekolah untuk melihat jadwal.</p></div>`;
+                return;
+            }
+            const sch = DB.schools.find(x => x.id === sId); lbl.innerText = sch ? sch.nama : '';
+
+            const onlyMine = !['admin', 'kepala_sekolah', 'admin_sekolah'].includes(cRole);
+            const myId = currentUser.data && currentUser.data.id;
+            const fKls = document.getElementById('dash-filter-kelas').value;
+            let items = DB.schedules.filter(j => j.sekolah_id === sId && j.hari === activeDay);
+            if (onlyMine) items = items.filter(j => j.guru_id === myId);
+            if (fKls && fKls !== 'ALL') items = items.filter(j => j.kelas_id === fKls);
+            items.sort((a, b) => (a.jam_mulai || '').localeCompare(b.jam_mulai || ''));
+
+            const kMap = new Map(DB.classes.map(c => [c.id, c.nama])); const mMap = new Map(DB.subjects.map(m => [m.id, m.nama])); const gMap = new Map(DB.teachers.map(t => [t.id, t.nama]));
+            const norm = t => { const m = String(t || '').match(/(\d{1,2})[:.](\d{2})/); return m ? m[1].padStart(2, '0') + ':' + m[2] : ''; };
+            const now = new Date(); const nowStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+            const isToday = activeDay === todayName;
+
+            list.innerHTML = items.map(j => {
+                const mulai = norm(j.jam_mulai), selesai = norm(j.jam_selesai);
+                const live = isToday && mulai && selesai && nowStr >= mulai && nowStr < selesai;
+                return `<div class="flex items-stretch gap-3 bg-white p-3 rounded-xl border border-gray-100 shadow-sm ${live ? 'jdw-now' : ''}">
+                    <div class="flex flex-col justify-center items-center shrink-0 w-[64px] text-center border-r border-gray-100 pr-3"><span class="font-black text-[13px] text-gray-900 leading-tight">${j.jam_mulai || '-'}</span><span class="text-[10px] font-bold text-gray-500 leading-tight">${j.jam_selesai || '-'}</span></div>
+                    <div class="flex flex-col min-w-0 flex-1 justify-center gap-0.5"><span class="font-black text-[12px] text-gray-900 uppercase truncate">${mMap.get(j.mapel_id) || '-'}</span><span class="text-[10px] font-bold text-gray-500 truncate"><i class="fas fa-user-tie mr-1"></i>${gMap.get(j.guru_id) || '-'}</span>${live ? '<span class="text-[9px] font-black text-green-600 uppercase tracking-widest">Sedang berlangsung</span>' : ''}</div>
+                    <span class="text-[9px] px-3 py-1.5 rounded border font-black uppercase tracking-widest shrink-0 self-center bg-blue-50 text-blue-700 border-blue-200">${kMap.get(j.kelas_id) || '-'}</span>
+                </div>`;
+            }).join('') || `<div class="flex flex-col items-center justify-center text-center py-10 text-gray-400"><i class="far fa-calendar-times text-3xl mb-3"></i><p class="text-xs font-bold italic">Tidak ada jadwal di hari ${activeDay}.</p></div>`;
         };
 
         // --- MANAJEMEN JADWAL ---
