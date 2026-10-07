@@ -167,7 +167,15 @@
         html.dark .shadow-sm { box-shadow: none !important; border: 1px solid #1e293b !important; }
         html.dark #logo-container-login, html.dark #logo-container-sidebar { background-color: #1e293b !important; border: 1px solid #334155 !important; }
         /* Rapi: tinggi kartu dashboard seragam, nama profil tidak terpotong */
-        #dash-top-cards > .modern-card, #dash-kepsek-cards > .modern-card { min-height: 112px; }
+        /* ===== Layout Dashboard (laptop & HP) ===== */
+        .dash-filterbar { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .75rem 1rem; align-items: end; }
+        .stat-card { display: flex; flex-direction: column; justify-content: space-between; gap: .75rem; min-height: 108px; }
+        .stat-ico { width: 2.5rem; height: 2.5rem; border-radius: .875rem; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+        .stat-lbl { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .stat-num { font-size: 1.875rem; line-height: 1; font-weight: 900; }
+        #dash-top-cards { grid-auto-rows: 1fr; }
+        #card-guru-tdk-hadir:not(.hidden) { display: flex; }
+        @media (min-width: 768px) { .stat-num { font-size: 2.25rem; } .stat-card { min-height: 128px; } }
         #header-name, #header-role { white-space: normal; overflow-wrap: anywhere; }
         html.dark #toast { background-color: #1e293b !important; border-color: #334155 !important; }
         /* --- Perbaikan kontras mode gelap: kolom/kartu berwarna (rekap, peringatan, status) --- */
@@ -297,19 +305,17 @@
                         </div>
 
                         <!-- Header Dashboard & Filter -->
-                        <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 mb-6 max-w-full">
+                        <div class="flex flex-col gap-4 max-w-full">
                             <div>
                                 <h2 class="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Dashboard</h2>
                                 <p class="text-xs text-gray-500 mt-1">Ringkasan statistik akademik.</p>
                             </div>
-                            
-                            <!-- Box Filter Dashboard -->
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-row items-end gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200 w-full lg:w-auto">
+                            <div class="dash-filterbar modern-card !p-3 md:!p-4 w-full">
                                 <div id="dash-filters-container" class="hidden flex-col min-w-0">
                                     <label class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1">Filter Kelas</label>
-                                    <div class="flex gap-2">
-                                        <select id="dash-filter-sekolah" class="modern-input !py-2 !px-3 text-[11px] font-bold hidden w-full" onchange="window.renderDashKelasFilter(); window.updateDashboardData();"><option value="ALL">Semua Sekolah</option></select>
-                                        <select id="dash-filter-kelas" class="modern-input !py-2 !px-3 text-[11px] font-bold w-full" onchange="window.updateDashboardData();"><option value="ALL">Semua Kelas</option></select>
+                                    <div class="flex gap-2 min-w-0">
+                                        <select id="dash-filter-sekolah" class="modern-input !py-2 !px-3 text-[11px] font-bold hidden w-full min-w-0" onchange="window.renderDashKelasFilter(); window.updateDashboardData();"><option value="ALL">Semua Sekolah</option></select>
+                                        <select id="dash-filter-kelas" class="modern-input !py-2 !px-3 text-[11px] font-bold w-full min-w-0" onchange="window.updateDashboardData();"><option value="ALL">Semua Kelas</option></select>
                                     </div>
                                 </div>
                                 <div class="flex flex-col min-w-0">
@@ -327,29 +333,43 @@
                             </div>
                         </div>
 
-                        <!-- Top Cards -->
-                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-full" id="dash-top-cards">
-                            <div class="modern-card flex flex-col justify-center w-full min-w-0"><p class="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2 truncate">Siswa (Akses)</p><h3 class="text-3xl md:text-4xl font-black text-gray-900" id="stat-siswa"><i class="fas fa-circle-notch fa-spin text-gray-200 text-2xl"></i></h3></div>
-                            <div class="modern-card flex flex-col justify-center w-full min-w-0"><p class="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2 truncate">Kelas Aktif</p><h3 class="text-3xl md:text-4xl font-black text-gray-900" id="stat-kelas"><i class="fas fa-circle-notch fa-spin text-gray-200 text-2xl"></i></h3></div>
-                            <div class="modern-card flex flex-col relative py-4 w-full min-w-0"><p class="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2 w-full text-left truncate" id="lbl-chart-absen">Proporsi Kehadiran</p><div id="absen-gauge" class="w-full min-w-0"></div></div>
-                            <div id="card-akses" class="modern-card flex flex-col justify-center relative overflow-hidden border-none shadow-sm bg-gray-50 w-full min-w-0"></div>
-                        </div>
-                        
-                        <div id="dash-kepsek-cards" class="hidden grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-full">
-                            <div class="modern-card flex flex-col justify-center bg-[#0f172a] text-white w-full min-w-0"><p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-2 truncate">Guru Hadir</p><h3 class="text-3xl md:text-4xl font-black text-white" id="stat-guru-hadir"><i class="fas fa-circle-notch fa-spin text-gray-600 text-2xl"></i></h3></div>
-                            <div class="modern-card flex flex-col justify-center border-l-4 border-l-red-500 w-full min-w-0"><p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-2 truncate">Guru Tdk Hadir</p><h3 class="text-3xl md:text-4xl font-black text-gray-900" id="stat-guru-absen"><i class="fas fa-circle-notch fa-spin text-gray-200 text-2xl"></i></h3></div>
+                        <!-- Ringkasan: kartu statistik (kiri) + proporsi kehadiran (kanan) -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 max-w-full" id="dash-hero">
+                            <div class="lg:col-span-2 grid grid-cols-2 gap-4 md:gap-6 min-w-0" id="dash-top-cards">
+                                <div class="modern-card stat-card min-w-0">
+                                    <div class="stat-ico" style="background:rgba(59,130,246,.12);color:#3b82f6"><i class="fas fa-user-graduate"></i></div>
+                                    <div class="min-w-0"><p class="stat-lbl text-gray-500 mb-1.5">Siswa (Akses)</p><h3 class="stat-num text-gray-900" id="stat-siswa"><i class="fas fa-circle-notch fa-spin text-gray-200 text-2xl"></i></h3></div>
+                                </div>
+                                <div class="modern-card stat-card min-w-0">
+                                    <div class="stat-ico" style="background:rgba(139,92,246,.12);color:#8b5cf6"><i class="fas fa-school"></i></div>
+                                    <div class="min-w-0"><p class="stat-lbl text-gray-500 mb-1.5">Kelas Aktif</p><h3 class="stat-num text-gray-900" id="stat-kelas"><i class="fas fa-circle-notch fa-spin text-gray-200 text-2xl"></i></h3></div>
+                                </div>
+                                <div id="card-guru-hadir" class="modern-card stat-card bg-[#0f172a] text-white min-w-0" style="display:none">
+                                    <div class="stat-ico" style="background:rgba(255,255,255,.12);color:#34d399"><i class="fas fa-user-check"></i></div>
+                                    <div class="min-w-0"><p class="stat-lbl text-gray-400 mb-1.5">Guru Hadir</p><h3 class="stat-num text-white" id="stat-guru-hadir"><i class="fas fa-circle-notch fa-spin text-gray-600 text-2xl"></i></h3></div>
+                                </div>
+                                <div id="card-guru-absen" class="modern-card stat-card border-l-4 border-l-red-500 min-w-0" style="display:none">
+                                    <div class="stat-ico" style="background:rgba(239,68,68,.12);color:#ef4444"><i class="fas fa-user-xmark"></i></div>
+                                    <div class="min-w-0"><p class="stat-lbl text-gray-500 mb-1.5">Guru Tdk Hadir</p><h3 class="stat-num text-gray-900" id="stat-guru-absen"><i class="fas fa-circle-notch fa-spin text-gray-200 text-2xl"></i></h3></div>
+                                </div>
+                                <div id="card-akses" class="modern-card col-span-2 flex flex-col justify-center relative overflow-hidden shadow-sm min-w-0" style="min-height:108px"></div>
+                            </div>
+                            <div class="modern-card flex flex-col justify-center min-w-0">
+                                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-3 truncate" id="lbl-chart-absen">Proporsi Kehadiran</p>
+                                <div id="absen-gauge" class="w-full min-w-0 max-w-[280px] mx-auto"></div>
+                            </div>
                         </div>
 
-                        <!-- Main Content Dashboard -->
-                        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 max-w-full">
-                            <div class="xl:col-span-2 flex flex-col gap-6 w-full min-w-0 max-w-full">
-                                <div class="modern-card min-h-[300px] md:min-h-[350px] flex-1 flex flex-col w-full overflow-hidden min-w-0"><div class="flex justify-between items-start gap-3 mb-4"><div class="min-w-0"><h3 class="font-black text-base md:text-lg text-gray-900">Jadwal Mengajar</h3><p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1 truncate" id="lbl-dash-jadwal-sekolah"></p></div><i class="fas fa-calendar-day text-gray-400 text-lg shrink-0 mt-1"></i></div><div class="flex gap-2 overflow-x-auto pb-2 custom-scrollbar w-full max-w-full" id="dash-jadwal-tabs"></div><div class="flex-1 mt-3 space-y-2 overflow-y-auto max-h-[440px] pr-1 custom-scrollbar min-w-0" id="dash-jadwal-list"></div></div>
+                        <!-- Konten Utama -->
+                        <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6 max-w-full items-stretch">
+                            <div class="xl:col-span-2 flex flex-col gap-4 md:gap-6 w-full min-w-0 max-w-full">
+                                <div class="modern-card min-h-[280px] flex-1 flex flex-col w-full overflow-hidden min-w-0"><div class="flex justify-between items-start gap-3 mb-4"><div class="min-w-0"><h3 class="font-black text-base md:text-lg text-gray-900">Jadwal Mengajar</h3><p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1 truncate" id="lbl-dash-jadwal-sekolah"></p></div><i class="fas fa-calendar-day text-gray-400 text-lg shrink-0 mt-1"></i></div><div class="flex gap-2 overflow-x-auto pb-2 custom-scrollbar w-full max-w-full" id="dash-jadwal-tabs"></div><div class="flex-1 mt-3 space-y-2 overflow-y-auto max-h-[440px] pr-1 custom-scrollbar min-w-0" id="dash-jadwal-list"></div></div>
                                 <div id="card-wali-kelas" class="hidden modern-card flex-col w-full overflow-hidden min-w-0"><div class="flex justify-between items-start gap-3 mb-4"><div class="min-w-0"><h3 class="font-black text-base md:text-lg text-gray-900">Wali Kelas</h3><p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1 truncate" id="lbl-wali-sekolah"></p></div><span class="text-[9px] font-bold text-gray-500 uppercase bg-gray-100 px-2 py-1 rounded shrink-0" id="lbl-wali-count"></span></div><div class="max-h-[320px] overflow-y-auto pr-1 custom-scrollbar min-w-0" id="dash-list-wali"></div></div>
                             </div>
-                            <div class="space-y-6 w-full min-w-0 max-w-full">
-                                <div class="modern-card border-l-4 border-l-red-500 p-4 md:p-6 w-full min-w-0"><h3 class="font-black text-sm mb-4 text-gray-900 flex items-center justify-between gap-2 min-w-0"><span class="truncate pr-2"><i class="fas fa-user-times mr-2 text-red-500"></i> Data Tdk Hadir</span><span class="text-[9px] font-bold text-gray-500 uppercase bg-gray-100 px-2 py-1 rounded shrink-0" id="lbl-absen-tgl">TGL</span></h3><div class="space-y-2 max-h-[150px] overflow-y-auto pr-2 custom-scrollbar min-w-0" id="dash-list-absen"><div class="flex justify-center py-4"><i class="fas fa-circle-notch fa-spin text-gray-300"></i></div></div></div>
-                                <div id="card-guru-tdk-hadir" class="hidden modern-card border-l-4 border-l-orange-500 p-4 md:p-6 w-full min-w-0"><h3 class="font-black text-sm mb-4 text-gray-900 flex items-center justify-between gap-2 min-w-0"><span class="truncate pr-2"><i class="fas fa-user-slash mr-2 text-orange-500"></i> Guru Tdk Hadir</span><span class="text-[9px] font-bold text-gray-500 uppercase bg-gray-100 px-2 py-1 rounded shrink-0" id="lbl-guru-absen-tgl">TGL</span></h3><div class="space-y-2 max-h-[150px] overflow-y-auto pr-2 custom-scrollbar min-w-0" id="dash-list-guru-absen"></div></div>
-                                <div class="modern-card border-l-4 border-l-green-500 p-4 md:p-6 w-full min-w-0"><h3 class="font-black text-sm mb-4 text-gray-900 flex items-center justify-between gap-2 min-w-0"><span class="truncate pr-2"><i class="fas fa-star mr-2 text-green-500"></i> Nilai Terinput</span><span class="text-[9px] font-bold text-gray-500 uppercase bg-gray-100 px-2 py-1 rounded shrink-0" id="lbl-nilai-tgl">TGL</span></h3><div class="space-y-3 max-h-[150px] overflow-y-auto pr-2 custom-scrollbar min-w-0" id="dash-list-nilai"><div class="flex justify-center py-4"><i class="fas fa-circle-notch fa-spin text-gray-300"></i></div></div></div>
+                            <div class="flex flex-col gap-4 md:gap-6 w-full min-w-0 max-w-full">
+                                <div class="modern-card xl:flex-1 flex flex-col border-l-4 border-l-red-500 p-4 md:p-6 w-full min-w-0"><h3 class="font-black text-sm mb-4 text-gray-900 flex items-center justify-between gap-2 min-w-0"><span class="truncate pr-2"><i class="fas fa-user-times mr-2 text-red-500"></i> Data Tdk Hadir</span><span class="text-[9px] font-bold text-gray-500 uppercase bg-gray-100 px-2 py-1 rounded shrink-0" id="lbl-absen-tgl">TGL</span></h3><div class="space-y-2 flex-1 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar min-w-0" id="dash-list-absen"><div class="flex justify-center py-4"><i class="fas fa-circle-notch fa-spin text-gray-300"></i></div></div></div>
+                                <div id="card-guru-tdk-hadir" class="hidden modern-card xl:flex-1 flex-col border-l-4 border-l-orange-500 p-4 md:p-6 w-full min-w-0"><h3 class="font-black text-sm mb-4 text-gray-900 flex items-center justify-between gap-2 min-w-0"><span class="truncate pr-2"><i class="fas fa-user-slash mr-2 text-orange-500"></i> Guru Tdk Hadir</span><span class="text-[9px] font-bold text-gray-500 uppercase bg-gray-100 px-2 py-1 rounded shrink-0" id="lbl-guru-absen-tgl">TGL</span></h3><div class="space-y-2 flex-1 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar min-w-0" id="dash-list-guru-absen"></div></div>
+                                <div class="modern-card xl:flex-1 flex flex-col border-l-4 border-l-green-500 p-4 md:p-6 w-full min-w-0"><h3 class="font-black text-sm mb-4 text-gray-900 flex items-center justify-between gap-2 min-w-0"><span class="truncate pr-2"><i class="fas fa-star mr-2 text-green-500"></i> Nilai Terinput</span><span class="text-[9px] font-bold text-gray-500 uppercase bg-gray-100 px-2 py-1 rounded shrink-0" id="lbl-nilai-tgl">TGL</span></h3><div class="space-y-3 flex-1 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar min-w-0" id="dash-list-nilai"><div class="flex justify-center py-4"><i class="fas fa-circle-notch fa-spin text-gray-300"></i></div></div></div>
                             </div>
                         </div>
                     </div>
@@ -1159,13 +1179,13 @@
 
             if(currentUser.role === 'admin') {
                 document.getElementById('header-role').innerText = 'ADMINISTRATOR SISTEM';
-                cardAkses.innerHTML = `<div class="absolute left-0 top-0 bottom-0 w-1 bg-purple-500"></div><p class="text-[9px] font-bold uppercase tracking-widest mb-2 pl-2 text-gray-500">Aksesibilitas</p><p class="text-sm font-black text-gray-900 pl-2"><i class="fas fa-crown text-purple-500 mr-1"></i> Full Admin</p>`;
+                cardAkses.innerHTML = `<div class="absolute left-0 top-0 bottom-0 w-1 bg-purple-500"></div><div class="flex items-center gap-3 pl-2 min-w-0"><div class="stat-ico" style="background:rgba(168,85,247,.12);color:#a855f7"><i class="fas fa-crown"></i></div><div class="min-w-0"><p class="stat-lbl text-gray-500 mb-1">Aksesibilitas</p><p class="text-base font-black text-gray-900 leading-tight">Full Admin</p></div></div>`;
             } else {
                 const p = currentUser.data.penugasan[currentUser.activeAssignmentIndex];
                 if(p) {
                     let rName = p.role==='wali_kelas'?'Wali Kelas':(p.role==='guru_mapel'?'Guru Mapel':(p.role==='admin_sekolah'?'Admin Sekolah':'Kepala Sekolah'));
                     document.getElementById('header-role').innerText = `${rName.toUpperCase()} - ${p.sekolah_nama.toUpperCase()}`;
-                    cardAkses.innerHTML = `<div class="absolute left-0 top-0 bottom-0 w-1 bg-yellow-400"></div><p class="text-[9px] font-bold uppercase tracking-widest mb-2 pl-2 text-gray-500 truncate">Akses Aktif</p><p class="text-xs font-black text-gray-900 pl-2 leading-tight">${rName}<br><span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest break-words max-w-full block">${p.sekolah_nama}</span></p>`;
+                    cardAkses.innerHTML = `<div class="absolute left-0 top-0 bottom-0 w-1 bg-yellow-400"></div><div class="flex items-center gap-3 pl-2 min-w-0"><div class="stat-ico" style="background:rgba(245,158,11,.14);color:#f59e0b"><i class="fas fa-id-badge"></i></div><div class="min-w-0"><p class="stat-lbl text-gray-500 mb-1">Akses Aktif</p><p class="text-base font-black text-gray-900 leading-tight">${rName}</p><span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest break-words block mt-0.5">${p.sekolah_nama}</span></div></div>`;
                 } else {
                     document.getElementById('header-role').innerText = 'TIDAK ADA TUGAS AKTIF';
                 }
@@ -1355,7 +1375,7 @@
             document.getElementById('dash-list-nilai').innerHTML = nilaiHtml || '<p class="text-[11px] text-gray-500 italic font-medium p-2">Belum ada nilai diinput.</p>';
             
             if(cRole === 'kepala_sekolah' || cRole === 'admin_sekolah') {
-                document.getElementById('dash-kepsek-cards').classList.replace('hidden', 'grid'); document.getElementById('dash-top-cards').classList.replace('lg:grid-cols-4', 'lg:grid-cols-3'); document.getElementById('card-akses').style.display = 'none';
+                document.getElementById('card-guru-hadir').style.display = 'flex'; document.getElementById('card-guru-absen').style.display = 'flex'; document.getElementById('card-akses').style.display = 'none';
                 let sIdAktif = currentUser.data.penugasan[currentUser.activeAssignmentIndex].sekolah_id; let gHadir = 0, gAbsen = 0;
                 let activeTeachers = DB.teachers.filter(t => t.penugasan && t.penugasan.some(p => p.sekolah_id === sIdAktif));
                 
@@ -1368,7 +1388,7 @@
                 }
                 document.getElementById('stat-guru-hadir').innerText = gHadir; document.getElementById('stat-guru-absen').innerText = gAbsen;
             } else {
-                document.getElementById('dash-kepsek-cards').classList.replace('grid', 'hidden'); document.getElementById('dash-top-cards').classList.replace('lg:grid-cols-3', 'lg:grid-cols-4'); document.getElementById('card-akses').style.display = 'flex';
+                document.getElementById('card-guru-hadir').style.display = 'none'; document.getElementById('card-guru-absen').style.display = 'none'; document.getElementById('card-akses').style.display = 'flex';
             }
 
             window.renderGuruTdkHadir(modeView, targetPrefix);
