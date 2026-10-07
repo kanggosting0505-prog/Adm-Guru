@@ -834,9 +834,12 @@
         };
 
         window.togglePassword = (inputId, iconId) => {
-            const p = document.getElementById(inputId); const i = document.getElementById(iconId);
-            if (p.type === 'password') { p.type = 'text'; i.classList.replace('fa-eye', 'fa-eye-slash'); } 
-            else { p.type = 'password'; i.classList.replace('fa-eye-slash', 'fa-eye'); }
+            const p = document.getElementById(inputId); const i = document.getElementById(iconId); if (!p) return;
+            const show = p.type === 'password'; p.type = show ? 'text' : 'password';
+            if (i) {
+                const keep = Array.from(i.classList).filter(c => !/^(svg-inline--fa|fas|fa-solid|fa-eye|fa-eye-slash|fa-w-\d+)$/.test(c));
+                setIcon(i, ['fas', show ? 'fa-eye-slash' : 'fa-eye'].concat(keep).join(' '));
+            }
         };
 
         // --- SISTEM CACHING LOKAL ---
@@ -953,10 +956,22 @@
             btn.innerHTML = '<span>Masuk Aplikasi</span> <i class="fas fa-arrow-right text-xs ml-2"></i>'; btn.disabled = false;
         };
 
+        // Font Awesome versi JS mengubah <i> menjadi <svg>. Pada <svg>, properti className hanya-baca (error di modul strict),
+        // dan mengganti class tidak menggambar ulang ikon. Solusi: ganti elemen ikon dengan <i> baru (id dipertahankan).
+        const setIcon = (el, cls) => {
+            if (!el) return null;
+            const n = document.createElement('i');
+            if (el.id) n.id = el.id;
+            n.className = cls;
+            el.replaceWith(n);
+            return n;
+        };
+        window.setIcon = setIcon;
+
         const showToast = (msg, isErr = false) => {
             const t = document.getElementById('toast');
             document.getElementById('toast-msg').innerText = msg;
-            document.getElementById('toast-icon').className = isErr ? 'fas fa-exclamation-triangle text-red-400' : 'fas fa-check-circle text-green-400';
+            setIcon(document.getElementById('toast-icon'), isErr ? 'fas fa-exclamation-triangle text-red-400' : 'fas fa-check-circle text-green-400');
             t.classList.remove('translate-x-[150%]', 'opacity-0');
             setTimeout(() => t.classList.add('translate-x-[150%]', 'opacity-0'), 3500);
         };
@@ -974,7 +989,7 @@
             document.getElementById('ui-confirm-title').textContent = o.title;
             document.getElementById('ui-confirm-msg').textContent = o.message;
             document.getElementById('ui-confirm-msg').classList.toggle('hidden', !o.message);
-            ico.className = 'fas ' + (o.icon || defIcon);
+            setIcon(ico, 'fas ' + (o.icon || defIcon));
             wrap.className = 'w-11 h-11 shrink-0 rounded-full flex items-center justify-center text-lg ' + (danger ? 'bg-red-50 text-red-600' : (warn ? 'bg-amber-50 text-amber-800' : 'bg-blue-50 text-blue-700'));
             card.classList.remove('border-t-[#0f172a]', 'border-t-red-500', 'border-t-amber-500');
             card.classList.add(danger ? 'border-t-red-500' : (warn ? 'border-t-amber-500' : 'border-t-[#0f172a]'));
@@ -1514,7 +1529,12 @@
             const kId = document.getElementById('jdw-kelas').value; const mId = document.getElementById('jdw-mapel').value; const waktu = document.getElementById('jdw-waktu').value.trim();
             if(!hari || !gId || !kId || !mId || !waktu) return showToast("Lengkapi form jadwal!", true);
             const sId = currentUser.data.penugasan[currentUser.activeAssignmentIndex].sekolah_id;
-            let parts = waktu.split('-'); let jMulai = parts[0] ? parts[0].trim() : ''; let jSelesai = parts[1] ? parts[1].trim() : '';
+            const _tm = waktu.match(/^(\d{1,2})[:.](\d{2})\s*-\s*(\d{1,2})[:.](\d{2})$/);
+            if(!_tm) return showToast("Format jam salah. Contoh: 07:30 - 09:00", true);
+            const _mnt = [+_tm[1] * 60 + +_tm[2], +_tm[3] * 60 + +_tm[4]];
+            if(+_tm[1] > 23 || +_tm[3] > 23 || +_tm[2] > 59 || +_tm[4] > 59) return showToast("Jam tidak valid. Gunakan 00:00 - 23:59.", true);
+            if(_mnt[1] <= _mnt[0]) return showToast("Jam selesai harus lebih besar dari jam mulai.", true);
+            const _p2 = n => String(n).padStart(2, '0'); let jMulai = _p2(+_tm[1]) + ':' + _tm[2]; let jSelesai = _p2(+_tm[3]) + ':' + _tm[4];
             
             const btn = document.getElementById('btn-simpan-jadwal'); const oldTxt = btn.innerHTML;
             btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Memproses...';
@@ -2151,7 +2171,7 @@
         const onNoteEdit = (e) => {
             document.querySelectorAll('[data-saved-note]').forEach(n => {
                 if (!n._scope || !n._scope.contains(e.target) || n.contains(e.target)) return;
-                if (n._mode === 'status' && e.target.matches(NOTE_EDIT_SEL)) { n.classList.add('warn'); n.querySelector('i').className = 'fas fa-exclamation-circle mt-0.5 shrink-0'; n.querySelector('span').textContent = 'Ada perubahan yang belum disimpan'; }
+                if (n._mode === 'status' && e.target.matches(NOTE_EDIT_SEL)) { n.classList.add('warn'); setIcon(n.querySelector('i, svg'), 'fas fa-exclamation-circle mt-0.5 shrink-0'); n.querySelector('span').textContent = 'Ada perubahan yang belum disimpan'; }
                 else n.remove();
             });
         };
@@ -2543,7 +2563,7 @@
             catch(e) { showToast(e.message, true); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
         };
         
-        window.hapusItem = async (col, id) => { if(await uiConfirm({ title: 'Hapus Permanen?', message: 'Data yang dihapus tidak bisa dikembalikan.', confirmText: 'Ya, Hapus', type: 'danger', icon: 'fa-trash-can' })) { try { if(col === 'teachers') { const tt = DB.teachers.find(x => x.id === id); if(tt) { if(tt.auth_uid) await deleteDoc(doc(db, 'accounts', tt.auth_uid)); if(tt.id_guru) await deleteDoc(doc(db, 'loginmap', tt.id_guru)); } } await execDelete(col, id); renderMaster(); renderListGuru(); renderSiswa(); if(col==='schedules')window.renderListJadwal(); showToast("Dihapus!"); } catch(e) { showToast(e.message, true); } } };
+        window.hapusItem = async (col, id) => { if(await uiConfirm({ title: 'Hapus Permanen?', message: 'Data yang dihapus tidak bisa dikembalikan.', confirmText: 'Ya, Hapus', type: 'danger', icon: 'fa-trash-can' })) { try { if(col === 'teachers') { const tt = DB.teachers.find(x => x.id === id); if(tt) { if(tt.auth_uid) await deleteDoc(doc(db, 'accounts', tt.auth_uid)); if(tt.id_guru) await deleteDoc(doc(db, 'loginmap', tt.id_guru)); } } await execDelete(col, id); const _safe = (fn) => { try { fn(); } catch (err) { console.error(err); } }; if(col==='schedules') _safe(() => window.renderListJadwal()); _safe(renderMaster); _safe(renderListGuru); _safe(renderSiswa); showToast("Dihapus!"); } catch(e) { showToast(e.message, true); } } };
 
         const renderMaster = () => {
             const notifDoc = DB.settings.find(s => s.id === 'global_notif'); if(notifDoc && notifDoc.active) document.getElementById('in-reset-msg').value = notifDoc.message;
