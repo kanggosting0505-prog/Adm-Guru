@@ -783,7 +783,7 @@
     <script type="module">
         import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updatePassword, reauthenticateWithCredential, EmailAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-        import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, deleteDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+        import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, clearIndexedDbPersistence, collection, doc, getDoc, getDocs, setDoc, addDoc, deleteDoc, deleteField, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
         // --- KONFIGURASI APLIKASI ---
         const IS_PREVIEW = false; // Set false JIKA SUDAH TERHUBUNG KE FIREBASE
@@ -797,7 +797,21 @@
         };
 
         let app, db, auth;
-        if (!IS_PREVIEW) { try { app = initializeApp(firebaseConfig); db = getFirestore(app); auth = getAuth(app); } catch(e) { console.error("Firebase Error:", e); } }
+        if (!IS_PREVIEW) {
+            try {
+                app = initializeApp(firebaseConfig);
+                // CACHE PERMANEN DI PERANGKAT (IndexedDB): aplikasi terbuka cepat dari cache, lalu Firestore menyinkronkan
+                // perubahan terbaru secara realtime. Bila browser tidak mendukung, otomatis memakai mode tanpa cache.
+                try { db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) }); }
+                catch(e) { console.warn("Cache lokal tidak tersedia, memakai mode online saja:", e); db = getFirestore(app); }
+                auth = getAuth(app);
+            } catch(e) { console.error("Firebase Error:", e); }
+            // Hapus cache perangkat bila sesi sebelumnya keluar (logout) / ditolak, agar data tidak tertinggal di komputer bersama
+            if (db && localStorage.getItem('wipe_idb') === '1') {
+                try { await clearIndexedDbPersistence(db); } catch(e) { console.warn("Gagal menghapus cache lokal:", e); }
+                localStorage.removeItem('wipe_idb');
+            }
+        }
 
         let currentUser = null; 
 
@@ -809,10 +823,10 @@
         const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
         // Bersihkan cache lama (versi lama menyimpan kata sandi di cache browser)
-        if (localStorage.getItem('cache_ver') !== '2') {
+        if (localStorage.getItem('cache_ver') !== '3') {
             Object.keys(localStorage).filter(k => k.startsWith('db_cache_')).forEach(k => localStorage.removeItem(k));
             localStorage.removeItem('teacher_session_id');
-            localStorage.setItem('cache_ver', '2');
+            localStorage.setItem('cache_ver', '3');
         }
         const clearDbCache = () => Object.keys(localStorage).filter(k => k.startsWith('db_cache_')).forEach(k => localStorage.removeItem(k));
 
@@ -863,50 +877,112 @@
             }
         };
 
-        // --- SISTEM CACHING LOKAL ---
-        const CACHE_DURATION = 60 * 60 * 1000; 
-        const fetchData = async (col) => {
-            if (IS_PREVIEW) return [];
-            try { const snap = await getDocs(collection(db, col)); return snap.docs.map(d => ({ id: d.id, ...d.data() })); } 
-            catch (e) { return null; }
+        // --- SINKRONISASI REALTIME (Firestore onSnapshot) ---
+        // GABUNGAN: Firestore menyimpan cache permanen di perangkat (cepat & hemat baca), sedangkan listener onSnapshot
+        // memastikan setiap perubahan (absen, siswa baru, penugasan, dll) langsung masuk ke semua perangkat yang sedang terbuka.
+        const DB_COLS = ['schools','subjects','classes','teachers','students','attendance','grades','settings','teacher_attendance','schedules'];
+        const byNama = (a, b) => String(a.nama || '').localeCompare(String(b.nama || ''));
+        // KUNCI DATA SISWA = ID dokumen siswa (unik). Dulu memakai NIS; bila banyak siswa ber-NIS "-" atau kembar,
+        // status mereka saling menimpa sehingga hanya 1 siswa yang tersimpan. Data lama tetap terbaca bila NIS-nya valid & unik.
+        let _nisCache = { ref: null, map: new Map() };
+        const legacyNisOk = (stu) => {
+            const nis = String(stu.nis || '').trim();
+            if (!nis || /^[-–—.\s]+$/.test(nis)) return false;
+            if (_nisCache.ref !== DB.students) {
+                const m = new Map(); DB.students.forEach(x => { const k = x.kelas_id + '|' + String(x.nis || '').trim(); m.set(k, (m.get(k) || 0) + 1); });
+                _nisCache = { ref: DB.students, map: m };
+            }
+            return _nisCache.map.get(stu.kelas_id + '|' + nis) === 1;
         };
-        
-        const fetchAllData = async (forceRefresh = false) => {
-            const cols = ['schools','subjects','classes','teachers','students','attendance','grades','settings','teacher_attendance','schedules'];
-            const fetchPromises = cols.map(async (c) => {
-                const cachedStr = localStorage.getItem('db_cache_' + c);
-                if (!forceRefresh && cachedStr) {
-                    try {
-                        const parsed = JSON.parse(cachedStr);
-                        if (Date.now() - parsed.time < CACHE_DURATION) { DB[c] = parsed.data; return; } 
-                    } catch(e) {}
-                }
-                const r = await fetchData(c);
-                if (r === null) { DB[c] = []; return; }
-                DB[c] = r;
-                localStorage.setItem('db_cache_' + c, JSON.stringify({ time: Date.now(), data: DB[c] }));
+        const readStu = (data, stu) => {
+            if (!data) return undefined;
+            if (data[stu.id] !== undefined) return data[stu.id];
+            if (legacyNisOk(stu) && data[stu.nis] !== undefined) return data[stu.nis];
+            return undefined;
+        };
+        let _unsubs = []; let _rtStarted = false; let _rtReady = false; let _changedCols = new Set(); let _refreshTimer = null;
+        window._absDirty = false;
+        document.addEventListener('change', (e) => { if (e.target && e.target.classList && e.target.classList.contains('sel-absen')) window._absDirty = true; });
+
+        const startRealtime = () => new Promise((resolve) => {
+            if (IS_PREVIEW || !db) return resolve();
+            if (_rtStarted) return resolve();
+            _rtStarted = true;
+            let pending = DB_COLS.length; let done = false;
+            const finish = () => { if (!done) { done = true; _rtReady = true; resolve(); } };
+            setTimeout(finish, 12000); // jaring pengaman bila jaringan lambat
+            DB_COLS.forEach((c) => {
+                let first = true;
+                const un = onSnapshot(collection(db, c), (snap) => {
+                    DB[c] = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    if (c === 'students' || c === 'teachers') DB[c].sort(byNama);
+                    if (first) { first = false; if (--pending === 0) finish(); }
+                    else { _changedCols.add(c); scheduleRefresh(); }
+                }, (err) => {
+                    console.error('Realtime error [' + c + ']:', err);
+                    if (first) { first = false; DB[c] = []; if (--pending === 0) finish(); }
+                });
+                _unsubs.push(un);
             });
-            await Promise.all(fetchPromises);
-            DB.students.sort((a, b) => a.nama.localeCompare(b.nama)); DB.teachers.sort((a, b) => a.nama.localeCompare(b.nama));
+        });
+        const stopRealtime = () => { _unsubs.forEach(u => { try { u(); } catch(e) {} }); _unsubs = []; _rtStarted = false; _rtReady = false; };
+
+        // Dipertahankan agar semua pemanggil lama tetap jalan. Listener realtime sudah memperbarui DB otomatis.
+        const fetchAllData = async () => { await startRealtime(); };
+        window.forceCacheUpdate = async () => {};
+
+        const execWrite = async (col, data, id) => {
+            if(id) await setDoc(doc(db, col, id), data, { merge: true }); else await addDoc(collection(db, col), data);
+        };
+        const execDelete = async (col, id) => { await deleteDoc(doc(db, col, id)); };
+
+        // Sinkronkan data guru yang sedang login dengan data terbaru (penugasan bisa diubah admin kapan saja)
+        const syncCurrentTeacher = () => {
+            if (!currentUser || currentUser.role !== 'guru') return true;
+            const fresh = DB.teachers.find(t => t.id === currentUser.data.id);
+            if (!fresh || !fresh.penugasan || fresh.penugasan.length === 0) {
+                if (_rtReady) { showToast(fresh ? "Penugasan Anda dicabut oleh Admin." : "Akun Anda dinonaktifkan oleh Admin.", true); setTimeout(() => window.appLogout(), 1500); }
+                return false;
+            }
+            const changed = JSON.stringify(fresh.penugasan) !== JSON.stringify(currentUser.data.penugasan);
+            currentUser.data = fresh;
+            if (currentUser.activeAssignmentIndex >= fresh.penugasan.length) currentUser.activeAssignmentIndex = 0;
+            if (changed) {
+                updateHeaderUI(); renderNavigation();
+                document.querySelectorAll('.nav-' + currentActiveView).forEach(el => el.classList.add('active'));
+            }
+            return true;
         };
 
-        window.forceCacheUpdate = async (col) => {
-            const r = await fetchData(col); if (r === null) return;
-            DB[col] = r;
-            localStorage.setItem('db_cache_' + col, JSON.stringify({ time: Date.now(), data: DB[col] }));
-            if(col === 'students') DB.students.sort((a, b) => a.nama.localeCompare(b.nama));
-            if(col === 'teachers') DB.teachers.sort((a, b) => a.nama.localeCompare(b.nama));
-        };
-        
-        const execWrite = async (col, data, id) => {
-            const dId = id || "doc_"+Date.now();
-            if(id) await setDoc(doc(db, col, id), data, { merge: true }); else await addDoc(collection(db, col), data);
-            await window.forceCacheUpdate(col);
-        };
-        
-        const execDelete = async (col, id, updateCache = true) => { 
-            await deleteDoc(doc(db, col, id)); 
-            if(updateCache) await window.forceCacheUpdate(col); 
+        const scheduleRefresh = () => {
+            clearTimeout(_refreshTimer);
+            _refreshTimer = setTimeout(() => {
+                if (!currentUser) return;
+                const ch = _changedCols; _changedCols = new Set();
+                try {
+                    if (!syncCurrentTeacher()) return;
+                    const v = currentActiveView; const has = (...cols) => cols.some(c => ch.has(c));
+                    if (v === 'dashboard') {
+                        if (currentUser.role === 'admin' && has('schools')) {
+                            const fs = document.getElementById('dash-filter-sekolah'); const old = fs.value;
+                            let o = '<option value="ALL">Semua Sekolah</option>'; DB.schools.forEach(sc => o += `<option value="${sc.id}">${sc.nama}</option>`);
+                            fs.innerHTML = o; fs.value = DB.schools.some(x => x.id === old) ? old : 'ALL';
+                        }
+                        if (has('classes', 'schools')) {
+                            const fk = document.getElementById('dash-filter-kelas'); const oldK = fk.value;
+                            if (fk && !fk.closest('.hidden')) { window.renderDashKelasFilter(); fk.value = Array.from(fk.options).some(o => o.value === oldK) ? oldK : 'ALL'; }
+                        }
+                        window.cekNotifGlobal(); window.updateDashboardData();
+                    } else if (v === 'listguru' && has('teachers', 'schools')) renderListGuru();
+                    else if (v === 'siswa' && has('students', 'classes', 'schools')) renderSiswa();
+                    else if (v === 'jadwal' && has('schedules', 'teachers', 'classes', 'subjects')) window.renderJadwalSaya();
+                    else if (v === 'absensi' && has('attendance', 'students')) {
+                        const bulanVisible = !document.getElementById('absensi-bulanan-view').classList.contains('hidden');
+                        if (bulanVisible) window.renderBulanAbsensi();
+                        else if (!window._absDirty) window.renderTableAbsensi(); // jangan timpa input yang belum disimpan
+                    }
+                } catch (e) { console.error('Auto-refresh error:', e); }
+            }, 250);
         };
 
         // --- MANAJEMEN TAMPILAN AMAN ---
@@ -949,18 +1025,18 @@
                 try {
                     if (!user) { currentUser = null; showLoginView(); return; }
                     if (currentUser) return;
-                    await fetchAllData(false);
+                    await startRealtime();
                     if (user.email === MASTER_EMAIL) {
                         currentUser = { role: 'admin', data: { nama: 'Administrator', nip: '-' } };
                         showMainView(); window.syncKelolaSekolah();
                     } else {
                         let gData = DB.teachers.find(t => t.auth_uid === user.uid);
-                        if (!gData) { await fetchAllData(true); gData = DB.teachers.find(t => t.auth_uid === user.uid); }
+                        for (let i = 0; !gData && i < 10; i++) { await sleep(700); gData = DB.teachers.find(t => t.auth_uid === user.uid); }
                         if (gData && gData.penugasan && gData.penugasan.length > 0) {
                             currentUser = { role: 'guru', data: gData, activeAssignmentIndex: 0 }; showMainView();
                         } else {
                             showLoginError(gData ? "Guru ini belum diberikan tugas oleh Admin." : "Akun belum terdaftar atau sudah dinonaktifkan. Hubungi Admin.");
-                            clearDbCache(); await signOut(auth); showLoginView();
+                            clearDbCache(); localStorage.setItem('wipe_idb', '1'); stopRealtime(); await signOut(auth); showLoginView();
                         }
                     }
                 } catch (error) { 
@@ -1221,7 +1297,7 @@
         
         window.appLogout = async () => { 
             const fl = document.getElementById('fast-loader'); fl.style.display = 'flex'; fl.style.visibility = 'visible'; fl.style.opacity = '1';
-            localStorage.removeItem('teacher_session_id'); clearDbCache(); if(auth) { await signOut(auth); } 
+            localStorage.removeItem('teacher_session_id'); clearDbCache(); localStorage.setItem('wipe_idb', '1'); stopRealtime(); if(auth) { await signOut(auth); } 
             window.location.reload(); 
         };
 
@@ -1306,27 +1382,29 @@
             let countH = 0, countS = 0, countI = 0, countA = 0, countL = 0;
             let absenHtml = ''; let nilaiHtml = '';
 
-            const dataAbsenTarget = DB.attendance.filter(a => activeClassIds.has(a.kelas_id) && a.tanggal.startsWith(targetPrefix));
+            const dataAbsenTarget = DB.attendance.filter(a => activeClassIds.has(a.kelas_id) && String(a.tanggal || '').startsWith(targetPrefix));
             const classMap = new Map(DB.classes.map(c => [c.id, c.nama]));
-            const studentMap = new Map(myStudents.map(s => [s.nis, s]));
+            const studentMap = new Map(myStudents.map(s => [s.id, s]));
+            const studentsByClass = new Map(); myStudents.forEach(s => { if(!studentsByClass.has(s.kelas_id)) studentsByClass.set(s.kelas_id, []); studentsByClass.get(s.kelas_id).push(s); });
 
             // Agregasi Absensi
             let rekapSiswaTdkHadir = new Map(); // Untuk menampung jika mode bulanan
             dataAbsenTarget.forEach(rekam => {
                 const nKelas = classMap.get(rekam.kelas_id) || '';
-                Object.keys(rekam.data).forEach(nis => {
-                    if(studentMap.has(nis)) {
-                        const status = rekam.data[nis];
+                (studentsByClass.get(rekam.kelas_id) || []).forEach(stu => {
+                    const nis = stu.id; const skey = stu.id;
+                    const status = readStu(rekam.data, stu);
+                    if(status) {
                         if(status === 'Hadir') countH++; else if(status === 'Sakit') countS++; else if(status === 'Izin') countI++; else if(status === 'Alpa') countA++; else if(status === 'Libur') countL++;
                         
                         if(status !== 'Hadir') { 
-                            const nSiswa = studentMap.get(nis).nama || nis;
+                            const nSiswa = studentMap.get(skey).nama || nis;
                             if (modeView === 'harian') {
                                 let bColor = status==='Sakit'?'bg-yellow-50 text-yellow-700 border-yellow-200':(status==='Izin'?'bg-blue-50 text-blue-700 border-blue-200':(status==='Libur'?'bg-gray-100 text-gray-500 border-gray-300':'bg-red-50 text-red-700 border-red-200'));
                                 absenHtml += `<div class="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm"><div class="flex flex-col truncate pr-2"><span class="font-bold text-[11px] text-gray-900 truncate">${nSiswa}</span><span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest truncate">${nKelas}</span></div><span class="text-[9px] px-3 py-1.5 rounded border font-black uppercase tracking-widest shrink-0 ${bColor}">${status}</span></div>`;
                             } else {
-                                if(!rekapSiswaTdkHadir.has(nis)) rekapSiswaTdkHadir.set(nis, { nama: nSiswa, kelas: nKelas, S:0, I:0, A:0, L:0 });
-                                let cData = rekapSiswaTdkHadir.get(nis);
+                                if(!rekapSiswaTdkHadir.has(skey)) rekapSiswaTdkHadir.set(skey, { nama: nSiswa, kelas: nKelas, S:0, I:0, A:0, L:0 });
+                                let cData = rekapSiswaTdkHadir.get(skey);
                                 if(status === 'Sakit') cData.S++; else if(status === 'Izin') cData.I++; else if(status === 'Alpa') cData.A++; else if(status === 'Libur') cData.L++;
                             }
                         }
@@ -1344,7 +1422,7 @@
             }
             document.getElementById('dash-list-absen').innerHTML = absenHtml || '<p class="text-[11px] text-gray-500 italic font-medium p-2">Semua hadir atau belum diinput.</p>';
 
-            const dataNilaiTarget = DB.grades.filter(g => activeClassIds.has(g.kelas_id) && g.tanggal.startsWith(targetPrefix)); 
+            const dataNilaiTarget = DB.grades.filter(g => activeClassIds.has(g.kelas_id) && String(g.tanggal || '').startsWith(targetPrefix)); 
             const subjectMap = new Map(DB.subjects.map(m => [m.id, m.nama]));
             const allowedMaSet = new Set(allowed.ma);
 
@@ -1357,9 +1435,10 @@
                 if (modeView === 'harian') {
                     let subHtml = `<div class="bg-gray-50 p-4 rounded-xl border border-gray-200 w-full min-w-0"><p class="font-black text-xs text-gray-900 mb-3 border-b border-gray-200 pb-2 uppercase tracking-widest truncate pr-2">${nMapel} <span class="text-[9px] font-bold text-gray-500 ml-1 bg-white px-2 py-1 rounded border inline-block mt-1 sm:mt-0">${nKelas}</span></p><div class="space-y-2">`;
                     let hasVal = false;
-                    Object.keys(rekam.data).forEach(nis => {
-                        if(studentMap.has(nis)) {
-                            hasVal = true; const nSiswa = studentMap.get(nis).nama || nis; const val = rekam.data[nis];
+                    (studentsByClass.get(rekam.kelas_id) || []).forEach(stu => {
+                        const nis = stu.id; const skey = stu.id; const valRaw = readStu(rekam.data, stu);
+                        if(valRaw) {
+                            hasVal = true; const nSiswa = studentMap.get(skey).nama || nis; const val = valRaw;
                             subHtml += `<div class="flex justify-between items-center text-[10px] bg-white px-3 py-2 rounded-lg shadow-sm border border-gray-100 gap-2 w-full"><span class="font-bold text-gray-700 truncate pr-2 flex-1">${nSiswa}</span><span class="font-black text-gray-900 bg-gray-100 px-2 py-1 rounded border shrink-0">T:${val.tugas||'-'} U:${val.uts||'-'} A:${val.uas||'-'}</span></div>`;
                         }
                     });
@@ -1383,7 +1462,7 @@
                     const recGuru = DB.teacher_attendance.find(a => a.sekolah_id === sIdAktif && a.tanggal === targetPrefix);
                     if(recGuru) { activeTeachers.forEach(t => { let st = recGuru.data[t.id] || 'Alpa'; if(st === 'Hadir') gHadir++; else if(st !== 'Libur') gAbsen++; }); }
                 } else {
-                    const recsGuru = DB.teacher_attendance.filter(a => a.sekolah_id === sIdAktif && a.tanggal.startsWith(targetPrefix));
+                    const recsGuru = DB.teacher_attendance.filter(a => a.sekolah_id === sIdAktif && String(a.tanggal || '').startsWith(targetPrefix));
                     recsGuru.forEach(rec => { activeTeachers.forEach(t => { let st = rec.data[t.id] || 'Alpa'; if(st === 'Hadir') gHadir++; else if(st !== 'Libur') gAbsen++; }); });
                 }
                 document.getElementById('stat-guru-hadir').innerText = gHadir; document.getElementById('stat-guru-absen').innerText = gAbsen;
@@ -1924,11 +2003,12 @@
             if(!document.getElementById('abs-peran').value) { document.getElementById('body-absensi').innerHTML = '<tr><td colspan="3" class="px-6 py-8 text-left text-[10px] uppercase tracking-widest text-gray-500 font-bold bg-gray-50">Absensi TK/RA dan SD/MI diisi oleh wali kelas. Anda belum ditugaskan sebagai wali kelas.</td></tr>'; return; }
             if(!kId || (!awal && !mId)) { document.getElementById('body-absensi').innerHTML = '<tr><td colspan="3" class="px-6 py-8 text-left text-[10px] uppercase tracking-widest text-gray-500 font-bold bg-gray-50">Silakan pilih kelas' + (awal ? '' : ' dan mapel') + '.</td></tr>'; return; }
             
+            window._absDirty = false;
             const dataLama = DB.attendance.find(a => a.kelas_id === kId && a.tanggal === tgl && (awal ? !a.mapel_id : a.mapel_id === mId))?.data || {};
             let htmlTbl = '';
             DB.students.filter(s => s.kelas_id === kId).forEach(s => {
-                const stat = dataLama[s.nis] || 'Hadir'; 
-                htmlTbl += `<tr class="hover:bg-gray-50 transition"><td class="px-6 py-4 font-medium text-gray-500 w-24 text-left">${s.nis}</td><td class="px-6 py-4 border-l border-gray-100 font-bold text-gray-900 uppercase truncate max-w-[200px] w-full text-left">${s.nama}</td><td class="px-6 py-4 border-l border-gray-100 text-left whitespace-nowrap"><select aria-label="Status Hadir" class="sel-absen modern-input !py-2 !px-3 text-[10px] font-bold uppercase tracking-widest w-full cursor-pointer bg-white" data-nis="${s.nis}"><option value="Hadir" ${stat==='Hadir'?'selected':''}>HADIR</option><option value="Sakit" ${stat==='Sakit'?'selected':''}>SAKIT</option><option value="Izin" ${stat==='Izin'?'selected':''}>IZIN</option><option value="Alpa" ${stat==='Alpa'?'selected':''}>ALPA</option><option value="Libur" ${stat==='Libur'?'selected':''}>LIBUR</option></select></td></tr>`;
+                const stat = readStu(dataLama, s) || 'Hadir'; 
+                htmlTbl += `<tr class="hover:bg-gray-50 transition"><td class="px-6 py-4 font-medium text-gray-500 w-24 text-left">${s.nis}</td><td class="px-6 py-4 border-l border-gray-100 font-bold text-gray-900 uppercase truncate max-w-[200px] w-full text-left">${s.nama}</td><td class="px-6 py-4 border-l border-gray-100 text-left whitespace-nowrap"><select aria-label="Status Hadir" class="sel-absen modern-input !py-2 !px-3 text-[10px] font-bold uppercase tracking-widest w-full cursor-pointer bg-white" data-sid="${s.id}"><option value="Hadir" ${stat==='Hadir'?'selected':''}>HADIR</option><option value="Sakit" ${stat==='Sakit'?'selected':''}>SAKIT</option><option value="Izin" ${stat==='Izin'?'selected':''}>IZIN</option><option value="Alpa" ${stat==='Alpa'?'selected':''}>ALPA</option><option value="Libur" ${stat==='Libur'?'selected':''}>LIBUR</option></select></td></tr>`;
             });
             document.getElementById('body-absensi').innerHTML = htmlTbl || '<tr><td colspan="3" class="px-6 py-6 text-left pl-6 text-xs text-gray-400">Tidak ada siswa.</td></tr>';
         };
@@ -1946,8 +2026,8 @@
             const btn = document.getElementById('btn-simpan-absensi'); const oldTxt = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Memproses...'; btn.disabled = true;
             
-            const dataToSave = {}; document.querySelectorAll('.sel-absen').forEach(el => { dataToSave[el.dataset.nis] = el.value; });
-            try { if (awal) await execWrite('attendance', { tanggal: tgl, kelas_id: kId, data: dataToSave }, `abs_${kId}_${tgl}`); else await execWrite('attendance', { tanggal: tgl, kelas_id: kId, mapel_id: mId, data: dataToSave }, `abs_${kId}_${mId}_${tgl}`); showToast("Disimpan!"); window.updateDashboardData(); noteStatus('btn-simpan-absensi'); } 
+            const dataToSave = {}; document.querySelectorAll('.sel-absen').forEach(el => { dataToSave[el.dataset.sid] = el.value; });
+            try { if (awal) await execWrite('attendance', { tanggal: tgl, kelas_id: kId, data: dataToSave }, `abs_${kId}_${tgl}`); else await execWrite('attendance', { tanggal: tgl, kelas_id: kId, mapel_id: mId, data: dataToSave }, `abs_${kId}_${mId}_${tgl}`); showToast("Disimpan!"); window._absDirty = false; window.updateDashboardData(); noteStatus('btn-simpan-absensi'); } 
             catch(e) { showToast("Gagal: " + e.message, true); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
         };
 
@@ -1969,7 +2049,7 @@
                 let countH = 0, countS = 0, countI = 0, countA = 0;
                 for(let i=1; i<=daysInMonth; i++) {
                     const dateStr = `${bln}-${String(i).padStart(2, '0')}`; const rec = records.find(r => r.tanggal === dateStr);
-                    let stat = rec && rec.data[s.nis] ? rec.data[s.nis].charAt(0) : '-';
+                    const _v = rec ? readStu(rec.data, s) : undefined; let stat = _v ? _v.charAt(0) : '-';
                     if(stat === 'H') countH++; else if(stat === 'S') countS++; else if(stat === 'I') countI++; else if(stat === 'A') countA++;
                     let color = stat==='H'?'color: #16a34a;':(stat==='S'?'color: #d97706;':(stat==='I'?'color: #2563eb;':(stat==='A'?'color: #dc2626;':(stat==='L'?'background-color: #fca5a5; color: #991b1b;':'color: #d1d5db;'))));
                     row += `<td class="px-1 py-2 border-r border-gray-100 text-center text-[9px] font-black" style="${color}">${stat}</td>`;
@@ -1997,8 +2077,8 @@
             const dataLama = DB.grades.find(g => g.kelas_id === kId && g.mapel_id === mId && g.tanggal === tgl)?.data || {};
             let htmlTbl = '';
             DB.students.filter(s => s.kelas_id === kId).forEach(s => {
-                const val = dataLama[s.nis] || { tugas: '', uts: '', uas: '' };
-                htmlTbl += `<tr class="row-nilai hover:bg-gray-50 transition" data-nis="${s.nis}"><td class="px-6 py-4 font-medium text-gray-500 w-24 text-left">${s.nis}</td><td class="px-6 py-4 border-l border-gray-100 font-bold text-gray-900 uppercase truncate max-w-[200px] w-full text-left">${s.nama}</td><td class="px-6 py-4 border-l border-gray-100 whitespace-nowrap"><input type="number" aria-label="Nilai Tugas" class="val-t modern-input !py-2 !px-3 bg-white text-left text-xs w-full" placeholder="-" value="${val.tugas}"></td><td class="px-6 py-4 border-l border-gray-100 whitespace-nowrap"><input type="number" aria-label="Nilai UTS" class="val-u modern-input !py-2 !px-3 bg-white text-left text-xs w-full" placeholder="-" value="${val.uts}"></td><td class="px-6 py-4 border-l border-gray-100 whitespace-nowrap"><input type="number" aria-label="Nilai UAS" class="val-a modern-input !py-2 !px-3 bg-white text-left text-xs w-full" placeholder="-" value="${val.uas}"></td></tr>`;
+                const val = readStu(dataLama, s) || { tugas: '', uts: '', uas: '' };
+                htmlTbl += `<tr class="row-nilai hover:bg-gray-50 transition" data-sid="${s.id}"><td class="px-6 py-4 font-medium text-gray-500 w-24 text-left">${s.nis}</td><td class="px-6 py-4 border-l border-gray-100 font-bold text-gray-900 uppercase truncate max-w-[200px] w-full text-left">${s.nama}</td><td class="px-6 py-4 border-l border-gray-100 whitespace-nowrap"><input type="number" aria-label="Nilai Tugas" class="val-t modern-input !py-2 !px-3 bg-white text-left text-xs w-full" placeholder="-" value="${val.tugas}"></td><td class="px-6 py-4 border-l border-gray-100 whitespace-nowrap"><input type="number" aria-label="Nilai UTS" class="val-u modern-input !py-2 !px-3 bg-white text-left text-xs w-full" placeholder="-" value="${val.uts}"></td><td class="px-6 py-4 border-l border-gray-100 whitespace-nowrap"><input type="number" aria-label="Nilai UAS" class="val-a modern-input !py-2 !px-3 bg-white text-left text-xs w-full" placeholder="-" value="${val.uas}"></td></tr>`;
             });
             document.getElementById('body-nilai').innerHTML = htmlTbl || '<tr><td colspan="5" class="px-6 py-6 text-left pl-6 text-xs text-gray-400">Tidak ada siswa.</td></tr>';
         };
@@ -2012,7 +2092,7 @@
             
             const dataToSave = {};
             document.querySelectorAll('.row-nilai').forEach(row => {
-                const n = row.dataset.nis; const t = row.querySelector('.val-t').value; const u = row.querySelector('.val-u').value; const a = row.querySelector('.val-a').value;
+                const n = row.dataset.sid; const t = row.querySelector('.val-t').value; const u = row.querySelector('.val-u').value; const a = row.querySelector('.val-a').value;
                 if(t || u || a) dataToSave[n] = { tugas: t, uts: u, uas: a };
             });
             try { await execWrite('grades', { tanggal: tgl, kelas_id: kId, mapel_id: mId, data: dataToSave }, `nil_${kId}_${mId}_${tgl}`); showToast("Tersimpan!"); window.updateDashboardData(); noteStatus('btn-simpan-nilai'); } 
@@ -2037,8 +2117,9 @@
                 let sumT=0, countT=0, sumU=0, countU=0, sumA=0, countA=0;
                 for(let i=1; i<=daysInMonth; i++) {
                     const dateStr = `${bln}-${String(i).padStart(2, '0')}`; const rec = records.find(r => r.tanggal === dateStr); let val = '-';
-                    if (rec && rec.data[s.nis]) {
-                        const d = rec.data[s.nis]; val = `<span class="text-[7px]">T${d.tugas||'-'} U${d.uts||'-'} A${d.uas||'-'}</span>`;
+                    const _d = rec ? readStu(rec.data, s) : undefined;
+                    if (_d) {
+                        const d = _d; val = `<span class="text-[7px]">T${d.tugas||'-'} U${d.uts||'-'} A${d.uas||'-'}</span>`;
                         if(d.tugas) { sumT += Number(d.tugas); countT++; } if(d.uts) { sumU += Number(d.uts); countU++; } if(d.uas) { sumA += Number(d.uas); countA++; }
                     }
                     row += `<td class="px-1 py-2 border-r border-gray-100 text-center text-[9px] font-black text-gray-400">${val}</td>`;
