@@ -75,6 +75,9 @@
         @media (min-width: 768px) { .modern-card { padding: 1.5rem; } }
         
         .modern-input { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 0.75rem; padding: 0.75rem 1rem; width: 100%; transition: all 0.2s; font-size: 0.875rem; font-weight: 600; color: #0f172a; min-height: 44px; display: block; outline: none; box-sizing: border-box; }
+        .nilai-input { width: 88px !important; min-width: 88px; max-width: 100%; text-align: center; padding: 0.5rem 0.25rem !important; font-size: 16px !important; font-weight: 700; background: #fff; touch-action: manipulation; -moz-appearance: textfield; }
+        .nilai-input::-webkit-outer-spin-button, .nilai-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        html.dark .nilai-input { background: #020617 !important; }
         .modern-input:focus { border-color: #0f172a; background: #fff; box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1); }
         
         .modern-btn { background: #0f172a; color: #fff; border-radius: 0.75rem; padding: 0.75rem 1.25rem; font-weight: 700; transition: all 0.2s; border: none; cursor: pointer; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; touch-action: manipulation; box-sizing: border-box; }
@@ -493,7 +496,7 @@
                                 </div>
                             </div>
                             <div class="modern-card !p-0 overflow-hidden shadow-sm border-t-4 border-t-[#0f172a] w-full max-w-full">
-                                <div class="overflow-x-auto custom-scrollbar w-full max-w-full"><table class="w-full text-left text-xs whitespace-nowrap border-collapse border border-gray-200 min-w-[600px] table-auto"><thead class="bg-gray-50 text-gray-800 font-bold uppercase text-[10px] tracking-widest border-b border-gray-200"><tr><th class="px-6 py-4 text-left">NIS</th><th class="px-6 py-4 border-l border-gray-200 w-full text-left">Nama Siswa</th><th class="px-6 py-4 border-l border-gray-200 text-left">Tugas</th><th class="px-6 py-4 border-l border-gray-200 text-left">UTS</th><th class="px-6 py-4 border-l border-gray-200 text-left">UAS</th></tr></thead><tbody id="body-nilai" class="divide-y divide-gray-100 font-semibold bg-white"></tbody></table></div>
+                                <div class="overflow-x-auto custom-scrollbar w-full max-w-full"><table class="w-full text-left text-xs whitespace-nowrap border-collapse border border-gray-200 min-w-[600px] table-auto"><thead class="bg-gray-50 text-gray-800 font-bold uppercase text-[10px] tracking-widest border-b border-gray-200"><tr><th class="px-6 py-4 text-left">NIS</th><th class="px-6 py-4 border-l border-gray-200 w-full text-left">Nama Siswa</th><th class="px-3 py-4 border-l border-gray-200 text-center">Tugas</th><th class="px-3 py-4 border-l border-gray-200 text-center">UTS</th><th class="px-3 py-4 border-l border-gray-200 text-center">UAS</th></tr></thead><tbody id="body-nilai" class="divide-y divide-gray-100 font-semibold bg-white"></tbody></table></div>
                             </div>
                         </div>
 
@@ -2078,7 +2081,7 @@
             let htmlTbl = '';
             DB.students.filter(s => s.kelas_id === kId).forEach(s => {
                 const val = readStu(dataLama, s) || { tugas: '', uts: '', uas: '' };
-                htmlTbl += `<tr class="row-nilai hover:bg-gray-50 transition" data-sid="${s.id}"><td class="px-6 py-4 font-medium text-gray-500 w-24 text-left">${s.nis}</td><td class="px-6 py-4 border-l border-gray-100 font-bold text-gray-900 uppercase truncate max-w-[200px] w-full text-left">${s.nama}</td><td class="px-6 py-4 border-l border-gray-100 whitespace-nowrap"><input type="number" aria-label="Nilai Tugas" class="val-t modern-input !py-2 !px-3 bg-white text-left text-xs w-full" placeholder="-" value="${val.tugas}"></td><td class="px-6 py-4 border-l border-gray-100 whitespace-nowrap"><input type="number" aria-label="Nilai UTS" class="val-u modern-input !py-2 !px-3 bg-white text-left text-xs w-full" placeholder="-" value="${val.uts}"></td><td class="px-6 py-4 border-l border-gray-100 whitespace-nowrap"><input type="number" aria-label="Nilai UAS" class="val-a modern-input !py-2 !px-3 bg-white text-left text-xs w-full" placeholder="-" value="${val.uas}"></td></tr>`;
+                htmlTbl += `<tr class="row-nilai hover:bg-gray-50 transition" data-sid="${s.id}"><td class="px-6 py-4 font-medium text-gray-500 w-24 text-left">${s.nis}</td><td class="px-6 py-4 border-l border-gray-100 font-bold text-gray-900 uppercase truncate max-w-[200px] w-full text-left">${s.nama}</td><td class="px-3 py-3 border-l border-gray-100 whitespace-nowrap text-center"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Nilai Tugas" class="val-t modern-input nilai-input" placeholder="-" value="${val.tugas}"></td><td class="px-3 py-3 border-l border-gray-100 whitespace-nowrap text-center"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Nilai UTS" class="val-u modern-input nilai-input" placeholder="-" value="${val.uts}"></td><td class="px-3 py-3 border-l border-gray-100 whitespace-nowrap text-center"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Nilai UAS" class="val-a modern-input nilai-input" placeholder="-" value="${val.uas}"></td></tr>`;
             });
             document.getElementById('body-nilai').innerHTML = htmlTbl || '<tr><td colspan="5" class="px-6 py-6 text-left pl-6 text-xs text-gray-400">Tidak ada siswa.</td></tr>';
         };
@@ -2320,6 +2323,14 @@
             });
         };
         document.addEventListener('input', onNoteEdit); document.addEventListener('change', onNoteEdit);
+        // Kotak nilai: hanya angka (titik/koma desimal), maksimum 100
+        document.addEventListener('input', (e) => {
+            const t = e.target; if (!t || !t.classList || !t.classList.contains('nilai-input')) return;
+            let v = String(t.value).replace(/,/g, '.').replace(/[^0-9.]/g, '');
+            const i = v.indexOf('.'); if (i !== -1) v = v.slice(0, i + 1) + v.slice(i + 1).replace(/\./g, '');
+            if (v !== '' && v !== '.' && parseFloat(v) > 100) v = '100';
+            if (v !== t.value) t.value = v;
+        });
         const noteCard = (id) => { const b = document.getElementById(id); return b ? (b.closest('.modern-card') || b.parentElement) : null; };
         const noteStatus = (btnId) => window.showSavedNote(btnId, 'Tersimpan pukul ' + jamSekarang(), { where: 'before', mode: 'status', scope: document.getElementById(btnId).closest('.view-section') });
 
