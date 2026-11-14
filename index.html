@@ -617,7 +617,7 @@
                                     <div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Nama Lengkap</label><input type="text" id="in-gb-nama" autocomplete="off" class="modern-input w-full" placeholder="Nama beserta gelar"></div>
                                     <div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">NIP (opsional)</label><input type="text" id="in-gb-nip" autocomplete="off" class="modern-input w-full" placeholder="Kosongkan jika tidak ada"></div>
                                     <div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Username Login</label><input type="text" id="in-gb-user" autocomplete="off" class="modern-input w-full" placeholder="Huruf kecil, tanpa spasi"></div>
-                                    <div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Kata Sandi Awal</label><input type="password" id="in-gb-pass" autocomplete="new-password" class="modern-input w-full" placeholder="Minimal 6 karakter"></div>
+                                    <div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Kata Sandi Awal</label><div class="relative"><input type="password" id="in-gb-pass" autocomplete="new-password" class="modern-input w-full pr-12" placeholder="Minimal 6 karakter"><div class="absolute inset-y-0 right-0 pt-[2px] pr-1 flex items-center"><button type="button" tabindex="-1" aria-label="Tampilkan atau sembunyikan kata sandi" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500 hover:text-black transition cursor-pointer" onclick="window.togglePassword('in-gb-pass', 'eye-icon-gb')"><i id="eye-icon-gb" class="fas fa-eye text-sm"></i></button></div></div></div>
                                 </div>
                                 <button type="button" onclick="window.tambahGuruBaru()" id="btn-tambah-guru-baru" class="modern-btn bg-indigo-600 whitespace-nowrap w-full sm:w-auto"><i class="fas fa-user-plus mr-2"></i> Daftarkan Guru Baru</button>
                             </div>
@@ -2565,7 +2565,7 @@
                 await setDoc(doc(db, 'accounts', acct.uid), { teacher_id: id });
                 await setDoc(doc(db, 'loginmap', id), { email: acct.email });
                 await window.forceCacheUpdate('teachers');
-                ['in-gb-nama', 'in-gb-nip', 'in-gb-user', 'in-gb-pass'].forEach(i => document.getElementById(i).value = '');
+                ['in-gb-nama', 'in-gb-nip', 'in-gb-user', 'in-gb-pass'].forEach(i => document.getElementById(i).value = ''); if (document.getElementById('in-gb-pass').type === 'text') window.togglePassword('in-gb-pass', 'eye-icon-gb');
                 window.renderKelolaGuru(); pilihDiAtur(id); showToast("Guru baru didaftarkan. Atur mapel dan kelasnya di panel bawah."); window.showSavedNote('btn-tambah-guru-baru', `Sudah didaftarkan: ${nama} (username: ${id}). Berikutnya atur mapel dan kelasnya di panel "Atur Mapel & Wali Kelas Guru".`, { where: 'after' });
             } catch (e) { showToast("Gagal: " + (e.code === 'auth/email-already-in-use' ? "Akun dengan ID ini sudah ada, coba lagi." : e.message), true); }
             finally { btn.innerHTML = oldTxt; btn.disabled = false; }
