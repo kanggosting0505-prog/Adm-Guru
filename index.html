@@ -433,6 +433,7 @@
                             <button onclick="window.setModeAbsensi('harian')" id="tab-abs-harian" class="text-[11px] font-black uppercase tracking-widest px-6 py-3 bg-[#0f172a] text-white rounded-t-xl transition-colors min-h-[44px] whitespace-nowrap shrink-0">Input Harian</button>
                             <button onclick="window.setModeAbsensi('bulanan')" id="tab-abs-bulanan" class="text-[11px] font-black uppercase tracking-widest px-6 py-3 bg-gray-100 text-gray-500 hover:text-black rounded-t-xl transition-colors min-h-[44px] whitespace-nowrap shrink-0">Rekap Bulanan</button>
                             <button onclick="window.setModeAbsensi('semua')" id="tab-abs-semua" class="hidden text-[11px] font-black uppercase tracking-widest px-6 py-3 bg-gray-100 text-gray-500 hover:text-black rounded-t-xl transition-colors min-h-[44px] whitespace-nowrap shrink-0">Semua Mapel</button>
+                            <button onclick="window.setModeAbsensi('semuabln')" id="tab-abs-semuabln" class="hidden text-[11px] font-black uppercase tracking-widest px-6 py-3 bg-gray-100 text-gray-500 hover:text-black rounded-t-xl transition-colors min-h-[44px] whitespace-nowrap shrink-0">Bulanan Semua Mapel</button>
                         </div>
                         
                         <!-- Panel Absen Harian -->
@@ -483,6 +484,23 @@
                             <p class="text-[10px] text-gray-500 font-bold leading-relaxed">Absensi semua mapel pada tanggal ini, urut dari jam pertama. Jam diambil dari jadwal mengajar; bila jadwal belum diisi, hanya nama mapel yang tampil.</p>
                             <div class="modern-card !p-0 overflow-hidden shadow-sm border-t-4 border-t-green-600 w-full max-w-full">
                                 <div class="overflow-x-auto pb-2 custom-scrollbar w-full max-w-full"><table id="tabel-absensi-semua" class="w-full text-left whitespace-nowrap border-collapse border border-gray-200 table-auto"><thead id="head-absensi-semua" class="bg-gray-50 text-gray-800 font-bold uppercase text-[9px] tracking-widest border-b border-gray-200"></thead><tbody id="body-absensi-semua" class="divide-y divide-gray-100 text-xs"></tbody></table></div>
+                            </div>
+                        </div>
+
+                        <!-- Panel Rekap Bulanan Semua Mapel (Admin Sekolah & Wali Kelas, SMP/SMA) -->
+                        <div id="absensi-semuabln-view" class="space-y-4 hidden w-full max-w-full">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200 w-full max-w-full">
+                                <div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Bulan</label><input type="month" id="abs-semuabln-bulan" class="modern-input w-full" onchange="window.autoSemesterSemua(); window.renderSemuaBulan()"></div>
+                                <div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Semester</label><select id="abs-semuabln-semester" class="modern-input w-full"><option value="GANJIL">Ganjil</option><option value="GENAP">Genap</option></select></div>
+                                <div class="flex flex-col min-w-0 w-full"><label class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Kelas</label><select id="abs-semuabln-kelas" class="modern-input w-full" onchange="window.renderSemuaBulan()"></select></div>
+                                <div class="flex flex-col sm:flex-row gap-2 min-w-0 w-full sm:col-span-3">
+                                    <button onclick="window.exportSemuaBulan('word')" class="btn-outline border-blue-200 text-blue-700 w-full font-black shadow-sm" title="Unduh Word"><i class="fas fa-file-word mr-1"></i> Word</button>
+                                    <button onclick="window.exportSemuaBulan('excel')" class="modern-btn bg-green-600 w-full font-black shadow-sm" title="Unduh Excel"><i class="fas fa-file-excel mr-1"></i> Excel</button>
+                                </div>
+                            </div>
+                            <p class="text-[10px] text-gray-500 font-bold leading-relaxed">Isi kolom tanggal: <b>H</b> = hadir di semua mapel hari itu; <b>A2</b> = alpa di 2 mapel; <b>I1</b> = izin di 1 mapel; <b>S1</b> = sakit di 1 mapel; <b>-</b> = belum ada absen. Kolom Hadir/Sakit/Izin/Alpa di kanan adalah jumlah sesi mapel selama sebulan.</p>
+                            <div class="modern-card !p-0 overflow-hidden shadow-sm border-t-4 border-t-green-600 w-full max-w-full">
+                                <div class="overflow-x-auto pb-2 custom-scrollbar w-full max-w-full"><table id="tabel-export-absensi-semuabln" class="w-full text-left whitespace-nowrap border-collapse border border-gray-200 table-auto"><thead id="head-absensi-semuabln" class="bg-gray-50 text-gray-800 font-bold uppercase text-[9px] tracking-widest border-b border-gray-200"></thead><tbody id="body-absensi-semuabln" class="divide-y divide-gray-100 text-xs"></tbody></table></div>
                             </div>
                         </div>
                     </div>
@@ -1012,7 +1030,9 @@
                     else if (v === 'absensi' && has('attendance', 'students', 'schedules')) {
                         const bulanVisible = !document.getElementById('absensi-bulanan-view').classList.contains('hidden');
                         const semuaVisible = !document.getElementById('absensi-semua-view').classList.contains('hidden');
-                        if (semuaVisible) window.renderSemuaMapel();
+                        const semuaBlnVisible = !document.getElementById('absensi-semuabln-view').classList.contains('hidden');
+                        if (semuaBlnVisible) window.renderSemuaBulan();
+                        else if (semuaVisible) window.renderSemuaMapel();
                         else if (bulanVisible) window.renderBulanAbsensi();
                         else if (!window._absDirty) window.renderTableAbsensi(); // jangan timpa input yang belum disimpan
                     }
@@ -1029,7 +1049,7 @@
             document.getElementById('main-view').classList.add('flex');
             
             const now = new Date(); const yyyyMM = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0'); const localDateStr = now.toLocaleDateString('en-CA'); 
-            document.getElementById('dash-date').value = localDateStr; document.getElementById('abs-tanggal').value = localDateStr; document.getElementById('abs-semua-tanggal').value = localDateStr; document.getElementById('nil-tanggal').value = localDateStr; document.getElementById('absguru-tanggal').value = localDateStr; document.getElementById('abs-bulan').value = yyyyMM; document.getElementById('nil-bulan').value = yyyyMM; document.getElementById('dash-month').value = yyyyMM; document.getElementById('absguru-bulan').value = yyyyMM;
+            document.getElementById('dash-date').value = localDateStr; document.getElementById('abs-tanggal').value = localDateStr; document.getElementById('abs-semua-tanggal').value = localDateStr; document.getElementById('nil-tanggal').value = localDateStr; document.getElementById('absguru-tanggal').value = localDateStr; document.getElementById('abs-bulan').value = yyyyMM; document.getElementById('abs-semuabln-bulan').value = yyyyMM; window.autoSemesterSemua(); document.getElementById('nil-bulan').value = yyyyMM; document.getElementById('dash-month').value = yyyyMM; document.getElementById('absguru-bulan').value = yyyyMM;
             window.navigate('dashboard');
         };
 
@@ -2034,28 +2054,27 @@
 
         // --- MANAJEMEN ABSENSI SISWA ---
         window.setModeAbsensi = (mode) => {
-            if (mode === 'semua' && document.getElementById('tab-abs-semua').classList.contains('hidden')) mode = 'harian';
+            if ((mode === 'semua' || mode === 'semuabln') && document.getElementById('tab-abs-semua').classList.contains('hidden')) mode = 'harian';
             const ON = 'text-[11px] font-black uppercase tracking-widest px-6 py-3 bg-[#0f172a] text-white rounded-t-xl transition-colors min-h-[44px] whitespace-nowrap shrink-0';
             const OFF = 'text-[11px] font-black uppercase tracking-widest px-6 py-3 bg-gray-100 text-gray-500 hover:text-black rounded-t-xl transition-colors min-h-[44px] whitespace-nowrap shrink-0';
-            const views = { harian: 'absensi-harian-view', bulanan: 'absensi-bulanan-view', semua: 'absensi-semua-view' };
+            const views = { harian: 'absensi-harian-view', bulanan: 'absensi-bulanan-view', semua: 'absensi-semua-view', semuabln: 'absensi-semuabln-view' };
             Object.keys(views).forEach(m => {
                 document.getElementById(views[m]).classList.toggle('hidden', mode !== m);
                 const tab = document.getElementById('tab-abs-' + m); const hid = tab.classList.contains('hidden');
                 tab.className = (mode === m ? ON : OFF) + (hid ? ' hidden' : '');
             });
-            if(mode === 'bulanan') window.renderBulanAbsensi(); else if (mode === 'semua') window.renderSemuaMapel(); else window.renderTableAbsensi();
+            if(mode === 'bulanan') window.renderBulanAbsensi(); else if (mode === 'semua') window.renderSemuaMapel(); else if (mode === 'semuabln') window.renderSemuaBulan(); else window.renderTableAbsensi();
         };
 
         // Tab "Semua Mapel": hanya Admin Sekolah & Wali Kelas pada sekolah SMP/SMA
         window.updateTabSemua = () => {
             const r = getCurrentRole(); const ok = (r === 'admin_sekolah' || r === 'wali_kelas') && !isJenjangAwal(ctxSid());
-            document.getElementById('tab-abs-semua').classList.toggle('hidden', !ok);
-            if (!ok) { if (!document.getElementById('absensi-semua-view').classList.contains('hidden')) window.setModeAbsensi('harian'); return; }
+            document.getElementById('tab-abs-semua').classList.toggle('hidden', !ok); document.getElementById('tab-abs-semuabln').classList.toggle('hidden', !ok);
+            if (!ok) { if (!document.getElementById('absensi-semua-view').classList.contains('hidden') || !document.getElementById('absensi-semuabln-view').classList.contains('hidden')) window.setModeAbsensi('harian'); return; }
             const allowed = getAllowed(); const sid = ctxSid();
             const kls = DB.classes.filter(c => c.sekolah_id === sid && allowed.cl.includes(c.id)).sort(byNama);
-            const sel = document.getElementById('abs-semua-kelas'); const old = sel.value;
-            sel.innerHTML = kls.map(c => `<option value="${c.id}">${escH(c.nama)}</option>`).join('') || '<option value="">Belum ada kelas</option>';
-            if (kls.some(c => c.id === old)) sel.value = old;
+            const optK = kls.map(c => `<option value="${c.id}">${escH(c.nama)}</option>`).join('') || '<option value="">Belum ada kelas</option>';
+            ['abs-semua-kelas', 'abs-semuabln-kelas'].forEach(id => { const sel = document.getElementById(id); const old = sel.value; sel.innerHTML = optK; if (kls.some(c => c.id === old)) sel.value = old; });
         };
 
         window.renderSemuaMapel = () => {
@@ -2088,6 +2107,59 @@
                 rows += r;
             });
             body.innerHTML = rows || '<tr><td class="px-6 py-6 text-xs text-gray-400">Tidak ada siswa.</td></tr>';
+        };
+
+        window.autoSemesterSemua = () => {
+            const b = document.getElementById('abs-semuabln-bulan').value; if (!b) return;
+            const mm = parseInt(b.split('-')[1], 10); document.getElementById('abs-semuabln-semester').value = (mm >= 7 && mm <= 12) ? 'GANJIL' : 'GENAP';
+        };
+
+        window.renderSemuaBulan = () => {
+            const head = document.getElementById('head-absensi-semuabln'); const body = document.getElementById('body-absensi-semuabln');
+            const kId = document.getElementById('abs-semuabln-kelas').value; const bln = document.getElementById('abs-semuabln-bulan').value;
+            const msg = (t) => { head.innerHTML = ''; body.innerHTML = `<tr><td class="px-6 py-8 text-left text-[10px] uppercase tracking-widest text-gray-500 font-bold bg-gray-50">${t}</td></tr>`; };
+            if (!kId || !bln) return msg('Pilih kelas dan bulan.');
+            const recs = DB.attendance.filter(a => a.kelas_id === kId && String(a.tanggal || '').startsWith(bln) && a.mapel_id);
+            if (!recs.length) return msg('Belum ada absensi mapel pada bulan ini.');
+            const daysInMonth = new Date(bln.split('-')[0], bln.split('-')[1], 0).getDate();
+            const byDay = new Map(); recs.forEach(r => { const d = parseInt(String(r.tanggal).slice(8, 10), 10); if (!byDay.has(d)) byDay.set(d, []); byDay.get(d).push(r); });
+            let h = '<tr><th class="px-2 py-3 border-r border-gray-200 text-left">NIS</th><th class="px-4 py-3 border-r border-gray-200 text-left">Nama Siswa</th>';
+            for (let i = 1; i <= daysInMonth; i++) h += `<th class="px-1 py-3 border-r border-gray-200 text-center text-[9px]">${i}</th>`;
+            h += '<th class="px-2 py-3 border-r border-gray-200 text-center text-[9px] text-green-700 bg-green-50">HADIR</th><th class="px-2 py-3 border-r border-gray-200 text-center text-[9px] text-yellow-700 bg-yellow-50">SAKIT</th><th class="px-2 py-3 border-r border-gray-200 text-center text-[9px] text-blue-700 bg-blue-50">IZIN</th><th class="px-2 py-3 text-center text-[9px] text-red-700 bg-red-50">ALPA</th></tr>';
+            head.innerHTML = h;
+            let rows = '';
+            DB.students.filter(s => s.kelas_id === kId).forEach(s => {
+                let r = `<tr class="hover:bg-gray-50"><td class="px-2 py-2 border-r border-gray-100 text-[10px] font-medium text-gray-500 text-left">${escH(s.nis)}</td><td class="px-4 py-2 border-r border-gray-100 text-[10px] font-bold uppercase text-gray-900 truncate max-w-[200px] text-left">${escH(s.nama)}</td>`;
+                const T = { H: 0, S: 0, I: 0, A: 0 };
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const day = byDay.get(d); const c = { H: 0, S: 0, I: 0, A: 0, L: 0 };
+                    (day || []).forEach(rec => { const v = readStu(rec.data, s); const ch = v ? v.charAt(0).toUpperCase() : ''; if (c[ch] !== undefined) c[ch]++; });
+                    T.H += c.H; T.S += c.S; T.I += c.I; T.A += c.A;
+                    const sesi = c.H + c.S + c.I + c.A + c.L; let txt = '-'; let color = 'color:#d1d5db;';
+                    if (sesi > 0) {
+                        const bad = [c.A ? 'A' + c.A : '', c.I ? 'I' + c.I : '', c.S ? 'S' + c.S : ''].filter(Boolean);
+                        if (bad.length) { txt = bad.join('<br>'); color = c.A ? 'color:#dc2626;' : (c.I ? 'color:#2563eb;' : 'color:#d97706;'); }
+                        else if (c.H) { txt = 'H'; color = 'color:#16a34a;'; }
+                        else { txt = 'L'; color = 'background-color:#fca5a5;color:#991b1b;'; }
+                    }
+                    r += `<td class="px-1 py-2 border-r border-gray-100 text-center text-[9px] font-black leading-tight" style="${color}">${txt}</td>`;
+                }
+                r += `<td class="px-1 py-2 border-r border-gray-100 text-center text-[10px] font-black text-green-700 bg-green-50">${T.H}</td><td class="px-1 py-2 border-r border-gray-100 text-center text-[10px] font-black text-yellow-700 bg-yellow-50">${T.S}</td><td class="px-1 py-2 border-r border-gray-100 text-center text-[10px] font-black text-blue-700 bg-blue-50">${T.I}</td><td class="px-1 py-2 text-center text-[10px] font-black text-red-700 bg-red-50">${T.A}</td></tr>`;
+                rows += r;
+            });
+            body.innerHTML = rows || '<tr><td class="px-6 py-6 text-xs text-gray-400">Tidak ada siswa.</td></tr>';
+        };
+
+        window.exportSemuaBulan = (fmt) => {
+            const kelasId = document.getElementById('abs-semuabln-kelas').value; const blnVal = document.getElementById('abs-semuabln-bulan').value;
+            const cls = DB.classes.find(c => c.id === kelasId);
+            if (!cls) return showToast("Pilih kelas terlebih dahulu!", true);
+            if (!blnVal) return showToast("Pilih bulan terlebih dahulu!", true);
+            const sem = document.getElementById('abs-semuabln-semester').value; const [y, m] = blnVal.split('-');
+            const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+            const ctx = { sekolahId: cls.sekolah_id, kelasId, mapelId: null, blnVal, role: 'wali_kelas', guruTitle: `Wali Kelas ${kelasRomawi(cls.nama)}`, mapelNama: 'Semua Mata Pelajaran' };
+            const opts = { ctx, semester: sem, title: `REKAP ABSENSI SEMUA MAPEL BULAN ${months[parseInt(m, 10) - 1].toUpperCase()} SEMESTER ${sem} TAHUN ${y}`, filename: `Rekap_Absensi_Semua_Mapel_${String(cls.nama).replace(/[^A-Za-z0-9]+/g, '_')}_${blnVal}` };
+            (fmt === 'word' ? window.exportToWord : window.exportToExcel)('absensi', 'tabel-export-absensi-semuabln', opts);
         };
 
         const setupAbsensi = () => { refreshFilter('abs', ''); refreshFilter('abs', '-bulan'); window.updateTabSemua(); window.renderTableAbsensi(); };
@@ -2257,15 +2329,15 @@
             return { sekolahId, kelasId, mapelId, blnVal, role: roleEff, guruTitle, mapelNama };
         };
 
-        window.exportToExcel = (tipe, tableId) => {
+        window.exportToExcel = (tipe, tableId, opts) => {
             const table = document.getElementById(tableId); if(!table || table.rows.length <= 1) return showToast("Tabel kosong!", true);
             
-            const ex = window.getExportCtx(tipe); if(!ex) return; const { sekolahId, kelasId, mapelId, blnVal } = ex;
+            const ex = (opts && opts.ctx) || window.getExportCtx(tipe); if(!ex) return; const { sekolahId, kelasId, mapelId, blnVal } = ex;
 
-            const semester = tipe === 'absensi' ? document.getElementById('abs-semester').value : document.getElementById('nil-semester').value;
+            const semester = (opts && opts.semester) || (tipe === 'absensi' ? document.getElementById('abs-semester').value : document.getElementById('nil-semester').value);
             const year = blnVal.split('-')[0]; const monthNum = parseInt(blnVal.split('-')[1]);
             const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-            const titleStr = `REKAP ${tipe === 'absensi' ? 'ABSENSI' : 'NILAI'} BULAN ${months[monthNum - 1].toUpperCase()} SEMESTER ${semester} TAHUN ${year}`;
+            const titleStr = (opts && opts.title) || `REKAP ${tipe === 'absensi' ? 'ABSENSI' : 'NILAI'} BULAN ${months[monthNum - 1].toUpperCase()} SEMESTER ${semester} TAHUN ${year}`;
 
             const sigs = window.getSignatures(sekolahId, kelasId, mapelId, ex.role);
             const guruTitle = ex.guruTitle; const mapelLine = ex.mapelNama ? 'Mata Pelajaran : ' + ex.mapelNama : '';
@@ -2300,19 +2372,19 @@
             </body></html>`;
 
             const blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel' });
-            const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `Rekap_${tipe}_${new Date().getTime()}.xls`; 
+            const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = ((opts && opts.filename) || `Rekap_${tipe}_${new Date().getTime()}`) + '.xls'; 
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         };
 
-        window.exportToWord = (tipe, tableId) => {
+        window.exportToWord = (tipe, tableId, opts) => {
             const table = document.getElementById(tableId); if(!table || table.rows.length <= 1) return showToast("Tabel kosong!", true);
             
-            const ex = window.getExportCtx(tipe); if(!ex) return; const { sekolahId, kelasId, mapelId, blnVal } = ex;
+            const ex = (opts && opts.ctx) || window.getExportCtx(tipe); if(!ex) return; const { sekolahId, kelasId, mapelId, blnVal } = ex;
 
-            const semester = tipe === 'absensi' ? document.getElementById('abs-semester').value : document.getElementById('nil-semester').value;
+            const semester = (opts && opts.semester) || (tipe === 'absensi' ? document.getElementById('abs-semester').value : document.getElementById('nil-semester').value);
             const year = blnVal.split('-')[0]; const monthNum = parseInt(blnVal.split('-')[1]);
             const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-            const titleStr = `REKAP ${tipe === 'absensi' ? 'ABSENSI' : 'NILAI'} BULAN ${months[monthNum - 1].toUpperCase()} SEMESTER ${semester} TAHUN ${year}`;
+            const titleStr = (opts && opts.title) || `REKAP ${tipe === 'absensi' ? 'ABSENSI' : 'NILAI'} BULAN ${months[monthNum - 1].toUpperCase()} SEMESTER ${semester} TAHUN ${year}`;
 
             const sigs = window.getSignatures(sekolahId, kelasId, mapelId, ex.role);
             const guruTitle = ex.guruTitle; const mapelLine = ex.mapelNama ? 'Mata Pelajaran : ' + ex.mapelNama : '';
@@ -2333,7 +2405,7 @@
             <tr><td><span class="underline">${sigs.guru.nama}</span><br>NIP. ${sigs.guru.nip}</td><td></td><td><span class="underline">${sigs.kepsek.nama}</span><br>NIP. ${sigs.kepsek.nip}</td></tr></table></div></body></html>`;
 
             const blob = new Blob(['\ufeff' + docHtml], { type: 'application/msword' });
-            const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `Rekap_${tipe}_${new Date().getTime()}.doc`; 
+            const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = ((opts && opts.filename) || `Rekap_${tipe}_${new Date().getTime()}`) + '.doc'; 
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         };
 
